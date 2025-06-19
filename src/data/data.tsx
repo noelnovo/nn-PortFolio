@@ -15,7 +15,7 @@ import LinkedInIcon from '../components/Icon/LinkedInIcon';
 import PythonIcon from '../components/Icon/PythonIcon';
 import TicTacToeIcon from '../components/Icon/TicTacToeIcon';
 import WebSiteIcon from '../components/Icon/WebSiteIcon';
-import profilepic from '../images/portfolio/random_pic.jpg';
+import profilepic from '../images/portfolio/profile.jpg';
 import {
   About,
   ContactSection,
@@ -60,7 +60,7 @@ export const heroData: Hero = {
     <>
       <p className="prose-sm text-stone-200 sm:prose-base lg:prose-lg">
       <strong className="text-stone-100"/>
-      I am a <strong className="text-stone-100">Backend Software Engineer</strong>, currently working at <strong className="text-stone-100">Apen Soluciones Informáticas</strong> developing custom ERP modules and services to our customers in .NET Framework.
+      I am a <strong className="text-stone-100">Software Developr</strong>, currently working at <strong className="text-stone-100">ERNI Consulting</strong> developing hardware drivers with XSLT and C#.
       </p>
       <p className="prose-sm text-stone-200 sm:prose-base lg:prose-lg">
         Outside the office I can be building this kind of things to <strong className="text-stone-100">learn new technologies and stay tuned</strong>, or maybe I just went hiking to some random mountain.
@@ -89,13 +89,13 @@ export const heroData: Hero = {
  */
 export const aboutData: About = {
   profileImageSrc: profilepic,
-  description: `I am a passionate Backend Software Engineer currently working at Apen Soluciones Informáticas, where I specialize in developing custom ERP modules and services using the .NET Framework. As I continue to advance my career, I’m focused on incorporating security best practices into every aspect of my work to ensure robust, reliable, and secure applications. Currently, I’m deepening my understanding of security principles through a Cybersecurity Course at IES Carles Vallbona, which complements my earlier education in Multiplatform Application Development.`,
+  description: `I am a passionate Backend Software Developer currently working at ERNI Consulting, where I specialize in developing custom drivers for lab devices using XSLT and C#. I place a strong emphasis on integrating security best practices into every stage of development to deliver robust, reliable, and secure applications. I recently completed a Cybersecurity Course at IES Carles Vallbona, which builds on my foundation in Multiplatform Application Development and reinforces my commitment to creating secure software solutions.`,
   aboutItems: [
     {label: 'Location', text: 'Barcelona, Spain', Icon: MapPinIcon},
     {label: 'Age', text: '20', Icon: CalendarIcon},
     {label: 'Nationality', text: 'Spanish', Icon: FlagIcon},
     {label: 'Interests', text: 'Lifelong learning, Challenges, Sports', Icon: SparklesIcon},
-    {label: 'Employment', text: 'Apen Soluciones Informaticas', Icon: BuildingOffice2Icon},
+    {label: 'Employment', text: 'ERNI Consulting', Icon: BuildingOffice2Icon},
     {label: 'Drivers license', text: '✅', Icon: CustomCarIcon},
   ],
 };
@@ -146,6 +146,10 @@ export const skills: SkillGroup[] = [
         level: 9,
       },
       {
+        name: 'PostgreSQL',
+        level: 8,
+      },
+      {
         name: 'MySQL',
         level: 8,
       },
@@ -160,7 +164,7 @@ export const skills: SkillGroup[] = [
     skills: [
       {
         name: 'React',
-        level: 7,
+        level: 4,
       }
     ],
   },
@@ -192,10 +196,6 @@ export const skills: SkillGroup[] = [
       {
         name: 'Android Studio',
         level: 9,
-      },
-      {
-        name: 'React Native',
-        level: 6,
       },
     ],
   },
@@ -243,21 +243,27 @@ export const education: TimelineItem[] = [
     <li>
       <strong>Cybersecurity Incidents:</strong> Understand the various types of cybersecurity incidents, their impact, and how to effectively respond to them.
     </li>
+    <br></br>
     <li>
       <strong>Network and System Hardening:</strong> Learn techniques to strengthen networks and systems against potential cyber threats, focusing on proactive security measures.
     </li>
+    <br></br>
     <li>
       <strong>Secure Production Deployment:</strong> Study best practices for securely deploying applications and systems into production environments to minimize vulnerabilities.
     </li>
+    <br></br>
     <li>
       <strong>Digital Forensics:</strong> Gain skills in forensic analysis of cyber incidents, including evidence collection, analysis, and reporting.
     </li>
+    <br></br>
     <li>
       <strong>Ethical Hacking:</strong> Explore ethical hacking techniques to identify vulnerabilities in systems and networks, while adhering to legal and ethical standards.
     </li>
+    <br></br>
     <li>
       <strong>Cybersecurity Regulations:</strong> Familiarize yourself with the legal and regulatory frameworks governing cybersecurity, ensuring compliance and best practices.
     </li>
+    <br></br>
     <li>
       <strong>Workplace Training:</strong> Participate in practical training in professional environments to apply learned skills and gain real-world experience in cybersecurity.
     </li>
@@ -272,36 +278,47 @@ export const education: TimelineItem[] = [
     <li>
       <strong>IT Systems:</strong> Learn to install, configure, and manage computer systems, focusing on network resource management and the deployment of specific software.
     </li>
+    <br></br>
     <li>
       <strong>Databases:</strong> Gain deep knowledge of databases, including SQL languages for data manipulation (DML), definition (DDL), control (DCL), and procedural extensions. Also covers object-relational databases.
     </li>
+    <br></br>
     <li>
       <strong>Programming:</strong> Study structured programming, modular design, file management, and object-oriented programming (OOP), including class libraries and database persistence.
     </li>
+    <br></br>
     <li>
       <strong>Markup Languages and Information Management:</strong> Understand XML programming and its applications in business information management systems.
     </li>
+    <br></br>
     <li>
       <strong>Development Environments:</strong> Learn software development and optimization techniques, along with an introduction to object-oriented design.
     </li>
+    <br></br>
     <li>
       <strong>Data Access:</strong> Study data persistence using files, relational databases, and XML-based databases, and work with data access components.
     </li>
+    <br></br>
     <li>
       <strong>User Interface Development:</strong> Focus on designing and implementing user interfaces, and learn to package and distribute applications.
     </li>
+    <br></br>
     <li>
       <strong>Multimedia Programming and Mobile Devices:</strong> Develop applications for mobile devices, multimedia programming, and game development for mobile platforms.
     </li>
+    <br></br>
     <li>
       <strong>Service and Process Programming:</strong> Learn about security, cryptography, multi-threading, and socket programming to create network services.
     </li>
+    <br></br>
     <li>
       <strong>Enterprise Management Systems:</strong> Implement and manage ERP and CRM systems to optimize business processes.
     </li>
+    <br></br>
     <li>
       <strong>Workplace Training and Labor Market Preparation:</strong> Gain skills for job searching, labor law understanding, and workplace safety, as well as training in entrepreneurship.
     </li>
+    <br></br>
     <li>
       <strong>Multi-platform Application Development Project:</strong> Develop a full project focused on multi-platform application development, integrating the acquired knowledge.
     </li>
@@ -315,37 +332,61 @@ export const education: TimelineItem[] = [
     <li>
       <strong>Assembly and Maintenance of Equipment:</strong> Learn the principles of electricity for computers, hardware components, and how to assemble and maintain computer systems. This includes installing and configuring software.
     </li>
+    <br></br>
     <li>
       <strong>Single-user Operating Systems:</strong> Understand the basics of proprietary and open-source operating systems, including installation, configuration, and management on single-user machines.
     </li>
+    <br></br>
     <li>
       <strong>Office Applications:</strong> Gain proficiency in office tools such as word processing, spreadsheets, databases, email management, and presentations to improve productivity in business environments.
     </li>
+    <br></br>
     <li>
       <strong>Network Operating Systems:</strong> Learn to configure proprietary and open-source network operating systems, focusing on resource sharing, security, and system integration.
     </li>
+    <br></br>
     <li>
       <strong>Local Networks:</strong> Acquire skills in setting up and managing local area networks (LANs), including configuring switches and routers, and troubleshooting network issues.
     </li>
     <li>
       <strong>Computer Security:</strong> Study both passive and active security techniques, such as firewalls, backups, data protection laws, and network monitoring to secure IT systems.
     </li>
+    <br></br>
     <li>
       <strong>Network Services:</strong> Learn to configure essential network services like DNS, DHCP, web servers, email, file transfers, and remote access in professional network environments.
     </li>
+    <br></br>
     <li>
       <strong>Web Applications:</strong> Understand the basics of web development, including HTML, CSS, content management systems, and file management tools.
     </li>
+    <br></br>
     <li>
       <strong>Labor Market Training:</strong> Receive guidance on job searching, preparing for interviews, and understanding labor laws to facilitate the transition into the workforce.
     </li>
+    <br></br>
   </ul>,
   }
 ];
 
 export const experience: TimelineItem[] = [
   {
-    date: 'April 2023 - Present',
+    date: 'June 2025 - Present',
+    location: 'ERNI Consulting',
+    title: 'Software Developer',
+    content: (
+      <ul>
+        <li>
+          <strong>Drivers development:</strong> Custom drivers for specific purpose devices using XSLT and C#, ensuring seamless integration with existing systems. Persistent testing (C#) and pipelining (GitLab) to ensure reliability and performance.
+        </li>
+        <br></br>
+        <li>
+          <strong>Agile:</strong> Using Scrum for separating team members responsibilities. Priorizing employees before processes, and executing small iterations over a whole project (before building a ship, we first need a boat). Organizing the team tasks and performing regular retrospectives to identify areas of improvement.
+        </li>
+      </ul>
+    ),
+  },
+  {
+    date: 'April 2023 - June 2025',
     location: 'Apen Soluciones Informáticas',
     title: 'Software Developer',
     content: (
@@ -353,9 +394,11 @@ export const experience: TimelineItem[] = [
         <li>
           <strong>App development:</strong> Built .NET programs with MVC pattern for managing every kind of ERP operation, such as creating customers, help with the supply chain management, project management, sales...
         </li>
+        <br></br>
         <li>
           <strong>API Consumtion and development:</strong> Created API's to create a connection between two different ERP systems. And consumed mostly OpenAI API's to integrate artificial within our programs.
         </li>
+        <br></br>
         <li>
           <strong>Database management:</strong> I've ackowledged how to synchronize tables amongst different databases with MS SQL, also maintained databases using stored procedures and functions.
         </li>
@@ -371,9 +414,11 @@ export const experience: TimelineItem[] = [
         <li>
           <strong>Network Management:</strong> Setup and maintain the rack cabinet, and kept the acces points up to date.
         </li>
+        <br></br>
         <li>
           <strong>Computer Management:</strong> Made sure the software wasn't deprecated.
         </li>
+        <br></br>
         <li>
           <strong>IT Support:</strong> Helped employees with technical issues related to IT.
         </li>

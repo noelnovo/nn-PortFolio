@@ -206,6 +206,12 @@ export const skills: SkillGroup[] = [
  */
 export const portfolioItems: PortfolioItem[] = [
   {
+    title: 'Wallet Tracker',
+    description: 'Simple application, a lot of DevOps and a little DevSecOps (im still learning) work in the back.\nJenkins, secret management, Github Workflows, Infrastructure as a Code with Terraform, Docker, Docker Registry, Cloudflare CDN, SonarQube integration, Dependency Track, deployment in Proxmox.\nEven has its own frontend as an Android client.',
+    url: 'https://github.com/noelpatata/WalletTrackerBackend/',
+    Icon: GithubIcon,
+  },
+  {
     title: 'Friends Network',
     description: 'Full stack chat application with clean architecture.',
     url: 'https://github.com/noelpatata/FriendsNetwork/',

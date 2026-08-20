@@ -7,14 +7,15 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 
+import AndroidIcon from '../components/Icon/AndroidIcon';
 import CustomCarIcon from '../components/Icon/CustomCarIcon';
-import FriendsIcon from '../components/Icon/FriendsIcon';
+import DotNetIcon from '../components/Icon/DotNetIcon';
 import GithubIcon from '../components/Icon/GithubIcon';
+import GoIcon from '../components/Icon/GoIcon';
 import InstagramIcon from '../components/Icon/InstagramIcon';
 import LinkedInIcon from '../components/Icon/LinkedInIcon';
 import PythonIcon from '../components/Icon/PythonIcon';
-import TicTacToeIcon from '../components/Icon/TicTacToeIcon';
-import WebSiteIcon from '../components/Icon/WebSiteIcon';
+import TypeScriptIcon from '../components/Icon/TypeScriptIcon';
 import profilepic from '../images/portfolio/profile.jpg';
 import {
   About,
@@ -23,7 +24,6 @@ import {
   Hero,
   HomepageMeta,
   PortfolioItem,
-  SkillGroup,
   Social,
   TimelineItem,
 } from './dataDef';
@@ -45,7 +45,6 @@ export const SectionId = {
   Contact: 'contact',
   Portfolio: 'portfolio',
   Resume: 'resume',
-  Skills: 'skills',
   Stats: 'stats',
 } as const;
 
@@ -101,113 +100,18 @@ export const aboutData: About = {
 };
 
 /**
- * Skills section
- */
-export const skills: SkillGroup[] = [
-  {
-    name: 'Spoken languages',
-    skills: [
-      {
-        name: 'English',
-        level: 8,
-      },
-      {
-        name: 'Spanish',
-        level: 10,
-      },
-      {
-        name: 'Catalan',
-        level: 10,
-      }
-    ],
-  },
-  {
-    name: 'Backend development',
-    skills: [
-      {
-        name: '.NET',
-        level: 9,
-      },
-      {
-        name: 'Spring',
-        level: 8,
-      },
-      {
-        name: 'Node.js',
-        level: 6,
-      }
-    ],
-  },
-  {
-    name: 'Databases',
-    skills: [
-      {
-        name: 'MSSQL',
-        level: 9,
-      },
-      {
-        name: 'PostgreSQL',
-        level: 8,
-      },
-      {
-        name: 'MySQL',
-        level: 8,
-      },
-      {
-        name: 'MongoDB',
-        level: 7,
-      }
-    ],
-  },
-  {
-    name: 'Frontend development',
-    skills: [
-      {
-        name: 'React',
-        level: 4,
-      }
-    ],
-  },
-  {
-    name: 'Programming languages',
-    skills: [
-      {
-        name: 'C#/Visual Basic',
-        level: 10,
-      },
-      {
-        name: 'Java/Kotlin',
-        level: 8,
-      },
-      {
-        name: 'Python',
-        level: 7,
-      },
-      {
-        name: 'Javascript/Typescript',
-        level: 6,
-      },
-    ],
-  },
-  
-  {
-    name: 'Mobile development',
-    skills: [
-      {
-        name: 'Android Studio',
-        level: 9,
-      },
-    ],
-  },
-];
-
-/**
  * Portfolio section
  */
 export const portfolioItems: PortfolioItem[] = [
   {
     title: 'Wallet Tracker',
-    description: 'Simple application, a lot of DevOps and a little DevSecOps (im still learning) work in the back.\nJenkins, secret management, Github Workflows, Infrastructure as a Code with Terraform, Docker, Docker Registry, Cloudflare CDN, SonarQube integration, Dependency Track, deployment in Proxmox.\nEven has its own frontend as an Android client.',
+    description: (
+      <>
+        <span className="font-bold">A DevOps-first backend with a DevSecOps touch.</span>
+        <br />
+        Jenkins, GitHub Workflows, Terraform, Docker, Cloudflare CDN, SonarQube and Dependency Track keep it built, scanned and deployed to Proxmox — with its own Android client.
+      </>
+    ),
     url: 'https://github.com/noelpatata/WalletTrackerBackend/',
     Icon: GithubIcon,
   },
@@ -215,19 +119,25 @@ export const portfolioItems: PortfolioItem[] = [
     title: 'Friends Network',
     description: 'Full stack chat application with clean architecture.',
     url: 'https://github.com/noelpatata/FriendsNetwork/',
-    Icon: FriendsIcon,
+    Icon: DotNetIcon,
   },
   {
-    title: 'Tic tac toe',
-    description: 'Just a simple tic tac toe with react.',
-    url: 'https://github.com/noelpatata/tic-tac-toe/',
-    Icon: TicTacToeIcon,
+    title: 'ClipShare Server',
+    description: 'Clipboard sharing daemon for your LAN, written in Go.',
+    url: 'https://github.com/noelpatata/clipshare_server',
+    Icon: GoIcon,
   },
   {
-    title: 'The resume itself',
+    title: 'ClipShare Android',
+    description: 'Android companion for ClipShare, keeps your clipboard in sync across devices on your LAN.',
+    url: 'https://github.com/noelpatata/clipshare_android',
+    Icon: AndroidIcon,
+  },
+  {
+    title: 'This portfolio itself',
     description: 'A web resume built with NextJS and TypeScript.',
     url: 'https://github.com/noelpatata/nn-PortFolio',
-    Icon: WebSiteIcon,
+    Icon: TypeScriptIcon,
   },
   {
     title: 'Spotify account checker',
@@ -382,11 +292,11 @@ export const experience: TimelineItem[] = [
     content: (
       <ul>
         <li>
-          <strong>Drivers development:</strong> Custom drivers for specific purpose devices using XSLT and C#, ensuring seamless integration with existing systems. Persistent testing (C#) and pipelining (GitLab) to ensure reliability and performance.
+          <strong>Platform development:</strong> A flexible, modular, and configurable platform that suits all the use cases for different pharma instruments around the world, Windows/Linux installers, Earthly pipelines, implementation of docker registries for testing and deployment.
         </li>
         <br></br>
         <li>
-          <strong>Agile:</strong> Using Scrum for separating team members responsibilities. Priorizing employees before processes, and executing small iterations over a whole project (before building a ship, we first need a boat). Organizing the team tasks and performing regular retrospectives to identify areas of improvement.
+          <strong>Drivers development:</strong> Custom drivers for specific purpose devices using XSLT and C#, ensuring seamless integration with existing systems. Persistent testing (C#) and pipelining (GitLab) to ensure reliability and performance.
         </li>
       </ul>
     ),

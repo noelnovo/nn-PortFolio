@@ -1,4 +1,4 @@
-import {FC, ForwardRefExoticComponent, SVGProps} from 'react';
+import {FC, ForwardRefExoticComponent, JSX, SVGProps} from 'react';
 
 import {IconProps} from '../components/Icon/Icon';
 
@@ -59,26 +59,11 @@ export interface Stat {
 }
 
 /**
- * Skills section
- */
-
-export interface Skill {
-  name: string;
-  level: number;
-  max?: number;
-}
-
-export interface SkillGroup {
-  name: string;
-  skills: Skill[];
-}
-
-/**
  * Portfolio section
  */
 export interface PortfolioItem {
   title: string;
-  description: string;
+  description: string | JSX.Element;
   url: string;
   Icon: FC<IconProps>;
 }

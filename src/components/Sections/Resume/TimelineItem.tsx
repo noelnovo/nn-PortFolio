@@ -1,7 +1,7 @@
 import {FC, memo, useCallback, useMemo,useRef, useState} from 'react';
 import {MdExpandLess} from 'react-icons/md';
 
-import {TimelineItem} from '../../../data/dataDef';
+import type {TimelineItem} from '../../../data/dataDef';
 
 const TimelineItem: FC<{item: TimelineItem}> = memo(({item}) => {
   const {title, date, location, content} = item;

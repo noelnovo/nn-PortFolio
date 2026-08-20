@@ -1,56 +1,19 @@
 import {ArrowTopRightOnSquareIcon} from '@heroicons/react/24/outline';
-import classNames from 'classnames';
-import {FC, memo, useState} from 'react';
+import {FC, memo} from 'react';
 
 import {portfolioItems, SectionId} from '../../data/data';
 import {PortfolioItem} from '../../data/dataDef';
 import Section from '../Layout/Section';
 
 const Portfolio: FC = memo(() => {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(0);
-  const [clickedIndex, setClickedIndex] = useState<number | null>(0);
-  const handleItemClick = (index: number) => {
-    setClickedIndex(index);
-    console.log(hoveredIndex)
-    console.log(clickedIndex)
-  };
   return (
     <Section className="bg-black" sectionId={SectionId.Portfolio}>
       <div className="flex flex-col gap-y-8">
         <h2 className="self-center text-xl font-bold text-white">Some of my work</h2>
-        <div className="flex overflow-hidden gap-4 h-[40lvh] sm:h-[30lvh]">
-          {portfolioItems.map((item, index) => {
-            const {title} = item;
-            const isHovered = hoveredIndex === index;
-            const isClicked = clickedIndex === index;
-            return (
-              <div 
-              className={classNames(
-                'rounded-xl opacity-50 bg-gradient-to-br from-black to-fuchsia-700 w-[5%] h-full transition-all duration-300 flex-[1] cursor-pointer',
-                {
-                  'hover:flex-[3]': !isClicked,
-                  'flex-[3]': isClicked && isHovered,
-                  'opacity-95': isHovered
-                }
-              )}
-                key={`${title}-${index}`}
-                onClick={() => handleItemClick(index)}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                  
-              >
-                {hoveredIndex !== index && (
-                  <item.Icon
-                  className="h-full w-full py-5 transition-opacity duration-300"
-                  color="gray"
-                    
-                  />
-                )}
-                <ItemOverlay item={item} />
-                
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {portfolioItems.map((item, index) => (
+            <ItemCard item={item} key={`${item.title}-${index}`} />
+          ))}
         </div>
       </div>
     </Section>
@@ -60,26 +23,21 @@ const Portfolio: FC = memo(() => {
 Portfolio.displayName = 'Portfolio';
 export default Portfolio;
 
-const ItemOverlay: FC<{item: PortfolioItem}> = memo(({item: {url, title, description, Icon}}) => {
-  
-
+const ItemCard: FC<{item: PortfolioItem}> = memo(({item: {url, title, description, Icon}}) => {
   return (
     <a
-      className={classNames(
-        'h-full bg-gray-900 transition-all duration-300'
-      )}
+      className="group flex h-full flex-col gap-y-4 rounded-xl border border-white/10 bg-gray-900 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:bg-gray-800 hover:shadow-lg hover:shadow-fuchsia-900/30"
       href={url}
-      rel='noopener noreferrer'
-      target="_blank"
-      >
-      <div className="relative h-full w-full p-4">
-        <div className="flex h-full w-full flex-col gap-y-2 overflow-y-auto overscroll-contain justify-center items-center">
-          <h2 className="text-center font-bold text-white opacity-100">{title}</h2>
-          <p className="text-center text-xs text-white opacity-100 sm:text-sm">{description}</p>
-          <Icon className="h-[100px] w-[100px] py-5" color='white'></Icon>
-        </div>
-        <ArrowTopRightOnSquareIcon className="absolute bottom-1 right-1 h-4 w-4 shrink-0 text-white sm:bottom-2 sm:right-2" />
+      rel="noopener noreferrer"
+      target="_blank">
+      <Icon className="h-12 w-12 text-white transition-colors duration-300 group-hover:text-fuchsia-400" color="white" />
+      <div className="flex flex-col gap-y-2">
+        <h3 className="text-lg font-bold text-white">{title}</h3>
+        <p className="text-sm leading-relaxed text-stone-300">{description}</p>
       </div>
+      <ArrowTopRightOnSquareIcon className="mt-auto h-5 w-5 shrink-0 self-end text-white transition-colors duration-300 group-hover:text-fuchsia-400" />
     </a>
   );
 });
+
+ItemCard.displayName = 'ItemCard';

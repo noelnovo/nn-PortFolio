@@ -112,37 +112,37 @@ export const portfolioItems: PortfolioItem[] = [
         Jenkins, GitHub Workflows, Terraform, Docker, Cloudflare CDN, SonarQube and Dependency Track keep it built, scanned and deployed to Proxmox — with its own Android client.
       </>
     ),
-    url: 'https://github.com/noelpatata/WalletTrackerBackend/',
+    url: 'https://github.com/noelnovo/WalletTrackerBackend/',
     Icon: GithubIcon,
   },
   {
     title: 'Friends Network',
     description: 'Full stack chat application with clean architecture.',
-    url: 'https://github.com/noelpatata/FriendsNetwork/',
+    url: 'https://github.com/noelnovo/FriendsNetwork/',
     Icon: DotNetIcon,
   },
   {
     title: 'ClipShare Server',
     description: 'Clipboard sharing daemon for your LAN, written in Go.',
-    url: 'https://github.com/noelpatata/clipshare_server',
+    url: 'https://github.com/noelnovo/clipshare_server',
     Icon: GoIcon,
   },
   {
     title: 'ClipShare Android',
     description: 'Android companion for ClipShare, keeps your clipboard in sync across devices on your LAN.',
-    url: 'https://github.com/noelpatata/clipshare_android',
+    url: 'https://github.com/noelnovo/clipshare_android',
     Icon: AndroidIcon,
   },
   {
     title: 'This portfolio itself',
     description: 'A web resume built with NextJS and TypeScript.',
-    url: 'https://github.com/noelpatata/nn-PortFolio',
+    url: 'https://github.com/noelnovo/nn-PortFolio',
     Icon: TypeScriptIcon,
   },
   {
     title: 'Spotify account checker',
     description: 'This console application checks if the given credentials are valid or not. Don\'t judge me its just for educational purposes.',
-    url: 'https://github.com/noelpatata/SpotifyAccountChecker',
+    url: 'https://github.com/noelnovo/SpotifyAccountChecker',
     Icon: PythonIcon,
   },
 ];
@@ -368,8 +368,8 @@ export const contact: ContactSection = {
     },
     {
       type: ContactType.Github,
-      text: 'noelpatata',
-      href: 'https://github.com/noelpatata',
+      text: 'noelnovo',
+      href: 'https://github.com/noelnovo',
     },
   ],
 };
@@ -378,7 +378,7 @@ export const contact: ContactSection = {
  * Social items
  */
 export const socialLinks: Social[] = [
-  {label: 'Github', Icon: GithubIcon, href: 'https://github.com/noelpatata'},
+  {label: 'Github', Icon: GithubIcon, href: 'https://github.com/noelnovo'},
   {label: 'LinkedIn', Icon: LinkedInIcon, href: 'https://www.linkedin.com/in/noel-novo-corboud-86924a269/'},
   {label: 'Instagram', Icon: InstagramIcon, href: 'https://www.instagram.com/noel_novo/'},
 ];

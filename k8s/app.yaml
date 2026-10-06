@@ -49,3 +49,40 @@ spec:
   ports:
     - port: 80
       targetPort: 3000
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: portfolio-vault-auth
+  namespace: portfolio
+spec:
+  method: appRole
+  mount: approle
+  appRole:
+    roleId: 42009452-b827-c155-df94-0fbf3ee7c7b4
+    secretRef: portfolio-vault-approle
+  vaultConnectionRef: vault-secrets-operator/default
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: portfolio-harbor-pull
+  namespace: portfolio
+spec:
+  type: kv-v2
+  mount: downops
+  path: nn-portfolio
+  refreshAfter: 30s
+  vaultAuthRef: portfolio-vault-auth
+  destination:
+    create: true
+    name: harbor-pull
+    overwrite: true
+    type: kubernetes.io/dockerconfigjson
+    transformation:
+      templates:
+        .dockerconfigjson:
+          text: |
+            {{- $auth := printf "%s:%s" .Secrets.HARBOR_ROBOT_NAME .Secrets.HARBOR_ROBOT_SECRET | b64enc -}}
+            {{- $registry := dict "username" .Secrets.HARBOR_ROBOT_NAME "password" .Secrets.HARBOR_ROBOT_SECRET "auth" $auth -}}
+            {{- dict "auths" (dict "10.2.0.101:5000" $registry) | toJson -}}

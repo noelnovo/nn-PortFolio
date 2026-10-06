@@ -22,16 +22,21 @@ spec:
         - name: harbor-pull
       containers:
         - name: portfolio
-          image: 10.2.0.101:5000/portfolio/nn-PortFolio:0.1.0-699bd17
+          image: 10.2.0.101:5000/portfolio/nn-portfolio:0.1.0-bootstrap
           ports:
-            - containerPort: 80
+            - containerPort: 3000
+          env:
+            - name: HOSTNAME
+              value: 0.0.0.0
+            - name: PORT
+              value: "3000"
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
               memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
 ---
 apiVersion: v1
 kind: Service
@@ -43,6 +48,4 @@ spec:
     app: portfolio
   ports:
     - port: 80
-      targetPort: 80
-  externalIPs:
-    - 10.2.0.19
+      targetPort: 3000

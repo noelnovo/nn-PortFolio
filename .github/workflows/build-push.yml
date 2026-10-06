@@ -1,0 +1,80 @@
+name: build-push-deploy
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'VERSION'
+      - 'k8s/**'
+      - '.github/workflows/**'
+  pull_request:
+    types: [closed]
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'VERSION'
+      - 'k8s/**'
+      - '.github/workflows/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nn-portfolio-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-push-deploy:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'dev')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read Harbor creds + URLs from Vault
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+        run: |
+          test -n "$VAULT_ADDR" || { echo 'missing VAULT_ADDR repo secret'; exit 1; }
+          test -n "$VAULT_TOKEN" || { echo 'missing VAULT_TOKEN repo secret'; exit 1; }
+          python3 - <<'EOF'
+          import json, os, urllib.request
+          addr = os.environ['VAULT_ADDR'].rstrip('/')
+          token = os.environ['VAULT_TOKEN']
+          def read(path):
+              req = urllib.request.Request(
+                  f'{addr}/v1/{path}',
+                  headers={'X-Vault-Token': token, 'User-Agent': 'Mozilla/5.0'})
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  return json.load(r)['data']['data']
+          robot = read('downops/data/nn-portfolio')
+          urls = read('downops/data/harbor.urls')
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              for k in ('HARBOR_ROBOT_NAME', 'HARBOR_ROBOT_SECRET'):
+                  print(f'::add-mask::{robot[k]}')
+                  f.write(f'{k}={robot[k]}\n')
+              harbor_url = urls.get('HARBOR_PUBLIC_URL') or urls.get('HARBOR_API_URL')
+              print(f'::add-mask::{harbor_url}')
+              f.write(f'HARBOR_URL={harbor_url}\n')
+          print('vault-read-ok')
+          EOF
+
+      - name: Build and push image
+        run: |
+          SHORT="${GITHUB_SHA::7}"
+          TAG="$(cat VERSION)-${SHORT}"
+          echo "TAG=${TAG}" >>"$GITHUB_ENV"
+          echo "$HARBOR_ROBOT_SECRET" | docker login "$HARBOR_URL" \
+            -u "$HARBOR_ROBOT_NAME" --password-stdin
+          echo 'harbor-login-ok'
+          docker build -t "${HARBOR_URL}/portfolio/nn-PortFolio:${TAG}" .
+          docker push "${HARBOR_URL}/portfolio/nn-PortFolio:${TAG}"
+
+      - name: Bump manifest image tag
+        run: |
+          sed -E -i "s#(image: 10.2.0.101:5000/portfolio/nn-PortFolio:).*#\1${TAG}#" k8s/app.yaml
+          grep 'image:' k8s/app.yaml
+          git config user.name 'nn-portfolio-ci'
+          git config user.email 'nn-portfolio-ci@downops.win'
+          git add k8s/app.yaml
+          git commit -m "[skip ci] Deploy ${TAG}" && git push origin HEAD:main || echo 'manifest unchanged'

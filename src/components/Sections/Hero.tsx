@@ -37,6 +37,13 @@ const Hero: FC = memo(() => {
                   {Icon && <Icon className="h-5 w-5 text-white sm:h-6 sm:w-6" />}
                 </Link>
               ))}
+              <a
+                className="flex gap-x-2 rounded-full border-2 border-white px-4 py-2 text-sm font-medium text-white ring-white ring-offset-gray-700/80 hover:bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-base"
+                href="https://blog.noelnovo.dev"
+                rel="noopener noreferrer"
+                target="_blank">
+                Blog
+              </a>
             </div>
           </div>
         </div>

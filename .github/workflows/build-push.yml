@@ -5,6 +5,10 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+
+env:
+  VAULT_ADDR: https://vault.downops.win
 
 concurrency:
   group: nn-portfolio-deploy
@@ -16,13 +20,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read Harbor credentials from Vault
-        env:
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+      - name: Authenticate to Vault using GitHub OIDC
         run: |
-          test -n "$VAULT_ADDR" || { echo 'missing VAULT_ADDR repo secret'; exit 1; }
-          test -n "$VAULT_TOKEN" || { echo 'missing VAULT_TOKEN repo secret'; exit 1; }
+          python3 - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          token_url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL']
+          token_url += ('&' if '?' in token_url else '?') + urllib.parse.urlencode({'audience': 'vault'})
+          token_req = urllib.request.Request(
+              token_url,
+              headers={
+                  'Authorization': 'Bearer ' + os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN'],
+                  'User-Agent': 'Mozilla/5.0',
+              })
+          with urllib.request.urlopen(token_req, timeout=20) as response:
+              jwt = json.load(response)['value']
+          login_req = urllib.request.Request(
+              os.environ['VAULT_ADDR'].rstrip('/') + '/v1/auth/github-actions/login',
+              data=json.dumps({'role': 'nn-portfolio-ci', 'jwt': jwt}).encode(),
+              headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0'},
+              method='POST')
+          with urllib.request.urlopen(login_req, timeout=20) as response:
+              vault_token = json.load(response)['auth']['client_token']
+          print(f'::add-mask::{vault_token}')
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f'VAULT_TOKEN={vault_token}\n')
+          print('vault-oidc-login-ok')
+          PY
+
+      - name: Read Harbor credentials from Vault
+        run: |
           python3 - <<'PY'
           import json, os, urllib.request
           addr = os.environ['VAULT_ADDR'].rstrip('/')

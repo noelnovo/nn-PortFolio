@@ -22,7 +22,7 @@ spec:
         - name: harbor-pull
       containers:
         - name: portfolio
-          image: 10.2.0.101:5000/portfolio/nn-portfolio:0.1.0-72062cb
+          image: 10.2.0.101:5000/portfolio/nn-portfolio:0.1.0-e3ebb88
           ports:
             - containerPort: 3000
           env:

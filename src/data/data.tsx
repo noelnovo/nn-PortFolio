@@ -91,7 +91,7 @@ export const aboutData: About = {
   description: `I am a passionate Backend Software Developer currently working at ERNI Consulting, where I specialize in developing custom drivers for lab devices using XSLT and C#. I place a strong emphasis on integrating security best practices into every stage of development to deliver robust, reliable, and secure applications. I recently completed a Cybersecurity Course at IES Carles Vallbona, which builds on my foundation in Multiplatform Application Development and reinforces my commitment to creating secure software solutions.`,
   aboutItems: [
     {label: 'Location', text: 'Barcelona, Spain', Icon: MapPinIcon},
-    {label: 'Age', text: '20', Icon: CalendarIcon},
+    {label: 'Age', text: '22', Icon: CalendarIcon},
     {label: 'Nationality', text: 'Spanish', Icon: FlagIcon},
     {label: 'Interests', text: 'Lifelong learning, Challenges, Sports', Icon: SparklesIcon},
     {label: 'Employment', text: 'ERNI Consulting', Icon: BuildingOffice2Icon},

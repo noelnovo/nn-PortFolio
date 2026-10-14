@@ -30,6 +30,11 @@ spec:
               value: 0.0.0.0
             - name: PORT
               value: "3000"
+          # Contact-form mail config (MAIL_GATEWAY_URL/_API_KEY/CONTACT_TO),
+          # injected from Vault downops/mail.noelnovo via VSO.
+          envFrom:
+            - secretRef:
+                name: portfolio-mail
           resources:
             requests:
               cpu: 50m
@@ -86,3 +91,28 @@ spec:
             {{- $auth := printf "%s:%s" .Secrets.HARBOR_ROBOT_NAME .Secrets.HARBOR_ROBOT_SECRET | b64enc -}}
             {{- $registry := dict "username" .Secrets.HARBOR_ROBOT_NAME "password" .Secrets.HARBOR_ROBOT_SECRET "auth" $auth -}}
             {{- dict "auths" (dict "10.2.0.101:5000" $registry) | toJson -}}
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: portfolio-mail
+  namespace: portfolio
+spec:
+  type: kv-v2
+  mount: downops
+  path: mail.noelnovo
+  refreshAfter: 30s
+  vaultAuthRef: portfolio-vault-auth
+  destination:
+    create: true
+    name: portfolio-mail
+    overwrite: true
+    type: Opaque
+    transformation:
+      includes:
+        - MAIL_GATEWAY_URL
+        - MAIL_GATEWAY_API_KEY
+        - CONTACT_TO
+  rolloutRestartTargets:
+    - kind: Deployment
+      name: portfolio

@@ -6,7 +6,7 @@ import type {NextApiRequest, NextApiResponse} from 'next';
  * routes the sender (noreply@noelnovo.dev) by this project's API key, and the
  * recipient comes from CONTACT_TO. All three values are injected from Vault.
  */
-type Body = {name?: string; email?: string; message?: string};
+type Body = {name?: string; message?: string};
 
 const WINDOW_MS = 10 * 60_000;
 const MAX_PER_WINDOW = 5;
@@ -38,16 +38,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const {name, email, message} = (req.body ?? {}) as Body;
+  const {name, message} = (req.body ?? {}) as Body;
   const from = clean(name, 80);
-  const replyTo = clean(email, 160);
   const body = clean(message, 4000);
   if (!from || !body) {
     res.status(400).json({error: 'Missing fields'});
-    return;
-  }
-  if (replyTo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo)) {
-    res.status(400).json({error: 'Invalid email'});
     return;
   }
 
@@ -59,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const text = [`Name: ${from}`, replyTo ? `Email: ${replyTo}` : '', '', body].filter(Boolean).join('\n');
+  const text = [`Name: ${from}`, '', body].join('\n');
   try {
     const response = await fetch(`${base}/v1/mail/send`, {
       method: 'POST',

@@ -2,14 +2,13 @@ import {FC, memo, useCallback, useState} from 'react';
 
 interface FormData {
   name: string;
-  email: string;
   message: string;
 }
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
 const ContactForm: FC = memo(() => {
-  const [data, setData] = useState<FormData>({name: '', email: '', message: ''});
+  const [data, setData] = useState<FormData>({name: '', message: ''});
   const [status, setStatus] = useState<Status>('idle');
 
   const onChange = useCallback(
@@ -35,7 +34,7 @@ const ContactForm: FC = memo(() => {
           return;
         }
         setStatus('sent');
-        setData({name: '', email: '', message: ''});
+        setData({name: '', message: ''});
       } catch {
         setStatus('error');
       }
@@ -58,15 +57,6 @@ const ContactForm: FC = memo(() => {
         required
         type="text"
         value={data.name}
-      />
-      <input
-        className={inputClasses}
-        name="email"
-        onChange={onChange}
-        placeholder="Your email"
-        required
-        type="email"
-        value={data.email}
       />
       <textarea
         className={inputClasses}

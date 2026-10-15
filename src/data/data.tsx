@@ -59,7 +59,7 @@ export const heroData: Hero = {
     <>
       <p className="prose-sm text-stone-200 sm:prose-base lg:prose-lg">
       <strong className="text-stone-100"/>
-      I am a <strong className="text-stone-100">Software Developr</strong>, currently working at <strong className="text-stone-100">ERNI Consulting</strong> developing hardware drivers with XSLT and C#.
+      I am a <strong className="text-stone-100">Software Developer</strong>, currently working at <strong className="text-stone-100">ERNI Consulting</strong> developing hardware drivers with XSLT and C#.
       </p>
       <p className="prose-sm text-stone-200 sm:prose-base lg:prose-lg">
         Outside the office I can be building this kind of things to <strong className="text-stone-100">learn new technologies and stay tuned</strong>, or maybe I just went hiking to some random mountain.

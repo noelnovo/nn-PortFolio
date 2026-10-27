@@ -90,9 +90,9 @@ jobs:
           import os, pathlib, re
           manifest = pathlib.Path('k8s/app.yaml')
           text = manifest.read_text()
-          image = '10.2.0.101:5000/portfolio/nn-portfolio:' + os.environ['TAG']
+          image = 'registry.int.downops.win/portfolio/nn-portfolio:' + os.environ['TAG']
           updated, count = re.subn(
-              r'(?m)^(\s*image:\s*)10\.2\.0\.101:5000/portfolio/nn-portfolio:\S+$',
+              r'(?m)^(\s*image:\s*)registry\.int\.downops\.win/portfolio/nn-portfolio:\S+$',
               lambda match: match.group(1) + image,
               text,
               count=1,

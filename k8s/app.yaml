@@ -22,7 +22,7 @@ spec:
         - name: harbor-pull
       containers:
         - name: portfolio
-          image: 10.2.0.101:5000/portfolio/nn-portfolio:0.1.0-81db579
+          image: registry.int.downops.win/portfolio/nn-portfolio:0.1.0-81db579
           ports:
             - containerPort: 3000
           env:
@@ -90,7 +90,7 @@ spec:
           text: |
             {{- $auth := printf "%s:%s" .Secrets.HARBOR_ROBOT_NAME .Secrets.HARBOR_ROBOT_SECRET | b64enc -}}
             {{- $registry := dict "username" .Secrets.HARBOR_ROBOT_NAME "password" .Secrets.HARBOR_ROBOT_SECRET "auth" $auth -}}
-            {{- dict "auths" (dict "10.2.0.101:5000" $registry) | toJson -}}
+            {{- dict "auths" (dict "registry.int.downops.win" $registry "10.2.0.101:5000" $registry) | toJson -}}
 ---
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret

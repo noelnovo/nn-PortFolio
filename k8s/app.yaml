@@ -76,7 +76,7 @@ metadata:
 spec:
   type: kv-v2
   mount: downops
-  path: nn-portfolio
+  path: apps/portfolio/harbor
   refreshAfter: 30s
   vaultAuthRef: portfolio-vault-auth
   destination:
@@ -85,6 +85,8 @@ spec:
     overwrite: true
     type: kubernetes.io/dockerconfigjson
     transformation:
+      excludeRaw: true
+      excludes: ['.*']
       templates:
         .dockerconfigjson:
           text: |
@@ -100,7 +102,7 @@ metadata:
 spec:
   type: kv-v2
   mount: downops
-  path: mail.noelnovo
+  path: apps/portfolio/mail
   refreshAfter: 30s
   vaultAuthRef: portfolio-vault-auth
   destination:
@@ -109,10 +111,11 @@ spec:
     overwrite: true
     type: Opaque
     transformation:
+      excludeRaw: true
       includes:
-        - MAIL_GATEWAY_URL
-        - MAIL_GATEWAY_API_KEY
-        - CONTACT_TO
+        - "^MAIL_GATEWAY_URL$"
+        - "^MAIL_GATEWAY_API_KEY$"
+        - "^CONTACT_TO$"
   rolloutRestartTargets:
     - kind: Deployment
       name: portfolio

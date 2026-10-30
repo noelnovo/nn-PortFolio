@@ -1,0 +1,19 @@
+name: Vault OIDC path proof
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  vault_oidc_probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Authenticate existing role and read canonical CI paths only
+        env:
+          VAULT_PROBE_ROLE: nn-portfolio-ci
+          VAULT_PROBE_PATHS_JSON: '["downops/data/apps/portfolio/harbor", "downops/data/services/harbor/urls"]'
+        run: python3 ci/vault-oidc-probe.py

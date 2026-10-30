@@ -24,6 +24,9 @@ jobs:
         run: |
           python3 - <<'PY'
           import json, os, urllib.parse, urllib.request
+          _vault_ci_opener = urllib.request.build_opener()
+          _vault_ci_opener.addheaders = [("User-Agent", "DownOps-Vault-CI/1.0")]
+          urllib.request.install_opener(_vault_ci_opener)
           token_url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL']
           token_url += ('&' if '?' in token_url else '?') + urllib.parse.urlencode({'audience': 'vault'})
           token_req = urllib.request.Request(
@@ -51,6 +54,9 @@ jobs:
         run: |
           python3 - <<'PY'
           import json, os, urllib.request
+          _vault_ci_opener = urllib.request.build_opener()
+          _vault_ci_opener.addheaders = [("User-Agent", "DownOps-Vault-CI/1.0")]
+          urllib.request.install_opener(_vault_ci_opener)
           addr = os.environ['VAULT_ADDR'].rstrip('/')
           token = os.environ['VAULT_TOKEN']
           def read(path):
@@ -59,8 +65,8 @@ jobs:
                   headers={'X-Vault-Token': token, 'User-Agent': 'Mozilla/5.0'})
               with urllib.request.urlopen(req, timeout=20) as response:
                   return json.load(response)['data']['data']
-          robot = read('downops/data/nn-portfolio')
-          urls = read('downops/data/harbor.urls')
+          robot = read('downops/data/apps/portfolio/harbor')
+          urls = read('downops/data/services/harbor/urls')
           with open(os.environ['GITHUB_ENV'], 'a') as env:
               for key in ('HARBOR_ROBOT_NAME', 'HARBOR_ROBOT_SECRET'):
                   print(f'::add-mask::{robot[key]}')

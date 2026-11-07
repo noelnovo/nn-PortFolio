@@ -65,7 +65,7 @@ jobs:
                   headers={'X-Vault-Token': token, 'User-Agent': 'Mozilla/5.0'})
               with urllib.request.urlopen(req, timeout=20) as response:
                   return json.load(response)['data']['data']
-          robot = read('downops/data/apps/portfolio/harbor')
+          robot = read('downops/data/services/harbor/ci/instance-003')
           urls = read('downops/data/services/harbor/urls')
           with open(os.environ['GITHUB_ENV'], 'a') as env:
               for key in ('HARBOR_ROBOT_NAME', 'HARBOR_ROBOT_SECRET'):
@@ -96,7 +96,7 @@ jobs:
           import os, pathlib, re
           manifest = pathlib.Path('k8s/app.yaml')
           text = manifest.read_text()
-          image = 'registry.int.downops.win/portfolio/nn-portfolio:' + os.environ['TAG']
+          image = 'registry.int.downops.win/noelnovo/nn-portfolio:' + os.environ['TAG']
           updated, count = re.subn(
               r'(?m)^(\s*image:\s*)registry\.int\.downops\.win/portfolio/nn-portfolio:\S+$',
               lambda match: match.group(1) + image,

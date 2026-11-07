@@ -19,10 +19,10 @@ spec:
         app: portfolio
     spec:
       imagePullSecrets:
-        - name: harbor-pull
+        - name: harbor-pull-noelnovo
       containers:
         - name: portfolio
-          image: registry.int.downops.win/portfolio/nn-portfolio:0.1.0-57d9f51
+          image: registry.int.downops.win/noelnovo/nn-portfolio:0.1.0-57d9f51
           ports:
             - containerPort: 3000
           env:

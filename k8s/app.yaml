@@ -71,32 +71,6 @@ spec:
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret
 metadata:
-  name: portfolio-harbor-pull
-  namespace: portfolio
-spec:
-  type: kv-v2
-  mount: downops
-  path: apps/portfolio/harbor
-  refreshAfter: 30s
-  vaultAuthRef: portfolio-vault-auth
-  destination:
-    create: true
-    name: harbor-pull
-    overwrite: true
-    type: kubernetes.io/dockerconfigjson
-    transformation:
-      excludeRaw: true
-      excludes: ['.*']
-      templates:
-        .dockerconfigjson:
-          text: |
-            {{- $auth := printf "%s:%s" .Secrets.HARBOR_ROBOT_NAME .Secrets.HARBOR_ROBOT_SECRET | b64enc -}}
-            {{- $registry := dict "username" .Secrets.HARBOR_ROBOT_NAME "password" .Secrets.HARBOR_ROBOT_SECRET "auth" $auth -}}
-            {{- dict "auths" (dict "registry.int.downops.win" $registry "10.2.0.101:5000" $registry) | toJson -}}
----
-apiVersion: secrets.hashicorp.com/v1beta1
-kind: VaultStaticSecret
-metadata:
   name: portfolio-mail
   namespace: portfolio
 spec:

@@ -75,8 +75,8 @@ metadata:
   namespace: portfolio
 spec:
   type: kv-v2
-  mount: downops
-  path: apps/portfolio/mail
+  mount: noelnovo
+  path: nn-portfolio/mail
   refreshAfter: 30s
   vaultAuthRef: portfolio-vault-auth
   destination:

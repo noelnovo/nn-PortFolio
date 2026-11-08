@@ -15,5 +15,5 @@ jobs:
       - name: Authenticate existing role and read canonical CI paths only
         env:
           VAULT_PROBE_ROLE: nn-portfolio-ci
-          VAULT_PROBE_PATHS_JSON: '["downops/data/apps/portfolio/harbor", "downops/data/services/harbor/urls"]'
+          VAULT_PROBE_PATHS_JSON: '["downops/data/services/harbor/ci/instance-003", "downops/data/services/harbor/urls"]'
         run: python3 ci/vault-oidc-probe.py

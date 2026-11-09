@@ -1,0 +1,15 @@
+name: Security gate contract
+on:
+  push:
+    branches: ['feat/security-gates']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  security-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s ci -p 'test_security_gate.py'

@@ -1,4 +1,9 @@
 node_modules
+security-image.tar
+security-image.json
+bom.json
+.scannerwork
+**/__pycache__
 .next
 .git
 .github

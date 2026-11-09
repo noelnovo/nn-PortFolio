@@ -15,10 +15,41 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: python3 -m unittest discover -s ci -p 'test_security_gate.py'
+      - name: Build runtime image and generate resolved CycloneDX SBOM
+        run: python3 ci/security_gate.py prepare
+      - name: Enforce SonarQube quality gate and Dependency-Track vulnerability gate
+        run: python3 ci/security_gate.py scan
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scanned-image-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            security-image.tar
+            security-image.json
+          if-no-files-found: error
+          retention-days: 1
+
   build-push-deploy:
+    needs: security
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: scanned-image-${{ github.sha }}-${{ github.run_attempt }}
+      - name: Verify and load the exact security-gated image
+        run: python3 ci/security_gate.py reuse
 
       - name: Authenticate to Vault using GitHub OIDC
         run: |
@@ -86,7 +117,8 @@ jobs:
           echo "TAG=${TAG}" >>"$GITHUB_ENV"
           echo "$HARBOR_ROBOT_SECRET" | docker login "$HARBOR_URL" \
             -u "$HARBOR_ROBOT_NAME" --password-stdin
-          docker build -t "${IMAGE}:${TAG}" -t "${IMAGE}:latest" .
+          docker tag security-target:ci "${IMAGE}:${TAG}"
+          docker tag security-target:ci "${IMAGE}:latest"
           docker push "${IMAGE}:${TAG}"
           docker push "${IMAGE}:latest"
 

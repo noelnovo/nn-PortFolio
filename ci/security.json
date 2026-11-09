@@ -1,0 +1,12 @@
+{
+  "provider": "github",
+  "repository": "noelnovo/nn-PortFolio",
+  "workflow": "build-push.yml",
+  "branches": ["main"],
+  "vault_url": "https://vault.downops.win",
+  "audience": "https://vault.downops.win",
+  "auth_mount": "github-actions",
+  "role": "security-ci-portfolio",
+  "instance": "instance-002",
+  "sbom": "image"
+}

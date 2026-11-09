@@ -59,10 +59,18 @@ export const heroData: Hero = {
     <>
       <p className="prose-sm text-stone-200 sm:prose-base lg:prose-lg">
       <strong className="text-stone-100"/>
-      I am a <strong className="text-stone-100">Software Developer</strong>, currently working at <strong className="text-stone-100">ERNI Consulting</strong> developing hardware drivers with XSLT and C#.
+      I'm a <strong className="text-stone-100">Software Developer</strong>, currently working at <strong className="text-stone-100">ERNI Consulting</strong>.
       </p>
       <p className="prose-sm text-stone-200 sm:prose-base lg:prose-lg">
-        Outside the office I can be building this kind of things to <strong className="text-stone-100">learn new technologies and stay tuned</strong>, or maybe I just went hiking to some random mountain.
+        Beyond my day-to-day work, I build projects like{' '}
+        <a
+          className="text-stone-100 underline decoration-fuchsia-400 underline-offset-2 hover:text-fuchsia-300"
+          href="https://github.com/noelnovo/WalletTrackerBackend"
+          rel="noopener noreferrer"
+          target="_blank">
+          this one
+        </a>{' '}
+        to explore new technologies, with a particular interest in DevOps, automation, and the journey from code to production.
       </p>
     </>
   ),
@@ -88,7 +96,7 @@ export const heroData: Hero = {
  */
 export const aboutData: About = {
   profileImageSrc: profilepic,
-  description: `I am a passionate Backend Software Developer currently working at ERNI Consulting, where I specialize in developing custom drivers for lab devices using XSLT and C#. I place a strong emphasis on integrating security best practices into every stage of development to deliver robust, reliable, and secure applications. I recently completed a Cybersecurity Course at IES Carles Vallbona, which builds on my foundation in Multiplatform Application Development and reinforces my commitment to creating secure software solutions.`,
+  description: `At ERNI Consulting, I develop a configurable platform that connects laboratory and hospital instruments across the pharmaceutical and healthcare sectors, collecting and processing their data. I build C# device drivers with XSLT and HL7, ASTM, and POCT1-A standards, and create automated tests to verify integrations.\n\nI also maintain Windows and Linux installers and automate builds, tests, and deployments with Earthly, GitLab CI/CD, and Docker registries.`,
   aboutItems: [
     {label: 'Location', text: 'Barcelona, Spain', Icon: MapPinIcon},
     {label: 'Age', text: '22', Icon: CalendarIcon},
@@ -290,13 +298,15 @@ export const experience: TimelineItem[] = [
     location: 'ERNI Consulting',
     title: 'Software Developer',
     content: (
-      <ul>
+      <ul className="list-disc space-y-1 pl-5 text-left">
         <li>
-          <strong>Platform development:</strong> A flexible, modular, and configurable platform that suits all the use cases for different pharma instruments around the world, Windows/Linux installers, Earthly pipelines, implementation of docker registries for testing and deployment.
+          Develop a configurable platform that collects and processes data from laboratory and hospital instruments.
         </li>
-        <br></br>
         <li>
-          <strong>Drivers development:</strong> Custom drivers for specific purpose devices using XSLT and C#, ensuring seamless integration with existing systems. Persistent testing (C#) and pipelining (GitLab) to ensure reliability and performance.
+          Build C# and XSLT device drivers using HL7, ASTM, and POCT1-A standards; maintain automated tests and CI/CD pipelines.
+        </li>
+        <li>
+          Maintain cross-platform builds and deployment workflows for healthcare software.
         </li>
       </ul>
     ),
@@ -306,17 +316,15 @@ export const experience: TimelineItem[] = [
     location: 'Apen Soluciones Informáticas',
     title: 'Software Developer',
     content: (
-      <ul>
+      <ul className="list-disc space-y-1 pl-5 text-left">
         <li>
-          <strong>App development:</strong> Built .NET programs with MVC pattern for managing every kind of ERP operation, such as creating customers, help with the supply chain management, project management, sales...
+          Built .NET MVC features for A3ERP workflows, including customer, supply chain, project, and sales management.
         </li>
-        <br></br>
         <li>
-          <strong>API Consumtion and development:</strong> Created API's to create a connection between two different ERP systems. And consumed mostly OpenAI API's to integrate artificial within our programs.
+          Integrated ERP systems and added functionality using APIs, including OpenAI.
         </li>
-        <br></br>
         <li>
-          <strong>Database management:</strong> I've ackowledged how to synchronize tables amongst different databases with MS SQL, also maintained databases using stored procedures and functions.
+          Synchronized SQL Server databases and maintained stored procedures and functions.
         </li>
       </ul>
     ),
@@ -326,17 +334,15 @@ export const experience: TimelineItem[] = [
     location: 'Escola PIA',
     title: 'IT Assistant (Internship)',
     content: (
-      <ul>
+      <ul className="list-disc space-y-1 pl-5 text-left">
         <li>
-          <strong>Network Management:</strong> Setup and maintain the rack cabinet, and kept the acces points up to date.
+          Managed network network configuration across the school.
         </li>
-        <br></br>
         <li>
-          <strong>Computer Management:</strong> Made sure the software wasn't deprecated.
+          Kept computers and software current.
         </li>
-        <br></br>
         <li>
-          <strong>IT Support:</strong> Helped employees with technical issues related to IT.
+          Provided IT support to employees.
         </li>
       </ul>
     ),

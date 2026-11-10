@@ -1,7 +1,8 @@
 FROM node:22-alpine@sha256:0e1754758c2df4cfa3e68d59e2e1b7374bb7fd9ea6328eaaacf15cc934af8202 AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+COPY ci/patch-next-vendors.mjs ./ci/patch-next-vendors.mjs
+RUN npm ci && node ci/patch-next-vendors.mjs
 
 FROM node:22-alpine@sha256:0e1754758c2df4cfa3e68d59e2e1b7374bb7fd9ea6328eaaacf15cc934af8202 AS builder
 WORKDIR /app
@@ -24,6 +25,8 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack 
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/ci/runtime-smoke.cjs /tmp/portfolio-runtime-smoke.cjs
 USER nextjs
+RUN node /tmp/portfolio-runtime-smoke.cjs && rm /tmp/portfolio-runtime-smoke.cjs
 EXPOSE 3000
 CMD ["node", "server.js"]

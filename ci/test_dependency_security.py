@@ -1,6 +1,9 @@
 """Guard real runtime dependency fixes while retaining the standalone contract."""
 import json
 from pathlib import Path
+import shutil
+import subprocess
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +29,65 @@ class RuntimeDependencySecurityTests(unittest.TestCase):
         self.assertIn('USER nextjs', runner)
         self.assertIn('CMD ["node", "server.js"]', runner)
         self.assertEqual(dockerfile.count('node:22-alpine@sha256:'), 3)
+        self.assertIn('RUN npm ci && node ci/patch-next-vendors.mjs', dockerfile)
+        self.assertIn('RUN node /tmp/portfolio-runtime-smoke.cjs && rm /tmp/portfolio-runtime-smoke.cjs', runner)
+
+
+@unittest.skipUnless(shutil.which('node'), 'Synthetic vendor replacement requires Node')
+class VendorReplacementTests(unittest.TestCase):
+    def fixture(self, root):
+        package = json.loads((ROOT / 'package.json').read_text())
+        (root / 'package.json').write_text(json.dumps(package))
+        next_root = root / 'node_modules/next'
+        next_root.mkdir(parents=True)
+        (next_root / 'package.json').write_text('{"name":"next","version":"16.4.6"}')
+        for name in ['picomatch', 'semver', 'send']:
+            alias = 'next-patched-' + name
+            source = root / 'node_modules' / alias
+            source.mkdir()
+            version = package['dependencies'][alias].split('@')[-1]
+            (source / 'package.json').write_text(json.dumps({'name': name, 'version': version}))
+            (source / 'index.js').write_text('patched-' + name)
+            target = next_root / 'dist/compiled' / name
+            target.mkdir(parents=True)
+            (target / 'package.json').write_text(json.dumps({'name': name}))
+            (target / 'index.js').write_text('old-' + name)
+
+    def run_patch(self, root):
+        return subprocess.run(['node', str(ROOT / 'ci/patch-next-vendors.mjs')],
+                              cwd=root, capture_output=True, timeout=30)
+
+    def test_actual_package_code_and_metadata_are_replaced(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.fixture(root)
+            self.assertEqual(self.run_patch(root).returncode, 0)
+            for name in ['picomatch', 'semver', 'send']:
+                target = root / 'node_modules/next/dist/compiled' / name
+                self.assertEqual((target / 'index.js').read_text(), 'patched-' + name)
+                self.assertIn('version', json.loads((target / 'package.json').read_text()))
+
+    def test_all_inputs_are_verified_before_any_package_is_modified(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.fixture(root)
+            (root / 'node_modules/next-patched-semver/package.json').write_text('{"name":"semver","version":"0.0.0"}')
+            self.assertNotEqual(self.run_patch(root).returncode, 0)
+            for name in ['picomatch', 'semver', 'send']:
+                self.assertEqual((root / 'node_modules/next/dist/compiled' / name / 'index.js').read_text(), 'old-' + name)
+
+    def test_symlink_destination_cannot_delete_or_replace_outside_data(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.fixture(root)
+            outside = root / 'retained'
+            outside.mkdir()
+            (outside / 'marker').write_text('keep')
+            target = root / 'node_modules/next/dist/compiled/send'
+            shutil.rmtree(target)
+            target.symlink_to(outside, target_is_directory=True)
+            self.assertNotEqual(self.run_patch(root).returncode, 0)
+            self.assertEqual((outside / 'marker').read_text(), 'keep')
 
 
 if __name__ == '__main__':unittest.main()

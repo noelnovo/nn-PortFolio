@@ -17,6 +17,9 @@
     "autoprefixer": "10.5.4",
     "classnames": "^2.5.1",
     "next": "16.4.6",
+    "next-patched-picomatch": "npm:picomatch@4.0.7",
+    "next-patched-semver": "npm:semver@7.8.6",
+    "next-patched-send": "npm:send@0.19.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-icons": "^5.7.0"

@@ -58,7 +58,6 @@ export const heroData: Hero = {
   description: (
     <>
       <p className="prose-sm text-stone-200 sm:prose-base lg:prose-lg">
-      <strong className="text-stone-100"/>
       I'm a <strong className="text-stone-100">Software Developer</strong>, currently working at <strong className="text-stone-100">ERNI Consulting</strong>.
       </p>
       <p className="prose-sm text-stone-200 sm:prose-base lg:prose-lg">
@@ -156,7 +155,7 @@ export const portfolioItems: PortfolioItem[] = [
 ];
 
 /**
- * Resume section -- TODO: Standardize resume contact format or offer MDX
+ * Resume section. Entries use the shared TimelineItem data format.
  */
 export const education: TimelineItem[] = [
   {

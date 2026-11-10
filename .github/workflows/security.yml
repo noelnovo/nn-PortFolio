@@ -15,4 +15,4 @@ jobs:
       id-token: write
     # Reviewed immutable workflow; Vault also binds this called-workflow SHA.
     # No inherited repository secrets; no deployment or branch-rule changes.
-    uses: noelnovo/.github/.github/workflows/dependency-track-scan.yml@9e03f5d46e88ef4ce0afb9c307d0921ce343543b
+    uses: noelnovo/.github/.github/workflows/dependency-track-scan.yml@1af9e3f4564e160ba6e3dc0b495738c3c069254d

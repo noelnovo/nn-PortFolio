@@ -1,5 +1,6 @@
 // Next 16.4.6 still vendors vulnerable picomatch 4.0.1, semver 7.3.2 and
-// send 0.18.0 (vercel/next.js tag v16.4.6, packages/next/package.json/taskfile.js).
+// send 0.18.0, plus bundled debug/fresh (verified against the lockfile-integrity
+// checked Next tarball). Replace bundled code as well as ordinary dependencies.
 // Copy actual lockfile-verified patched npm packages, never fake version labels
 // or exclude components from the SBOM. Keep each library on its compatible line.
 import {cpSync, lstatSync, readFileSync, realpathSync, rmSync} from 'node:fs';
@@ -41,7 +42,7 @@ function verifiedReplacement(name) {
 }
 
 // Validate every input before making the first physical replacement.
-const replacements = ['picomatch', 'semver', 'send'].map(verifiedReplacement);
+const replacements = ['picomatch', 'semver', 'send', 'debug', 'fresh'].map(verifiedReplacement);
 for (const replacement of replacements) {
   rmSync(replacement.target, {recursive: true});
   cpSync(replacement.source, replacement.target, {recursive: true, dereference: true});

@@ -32,13 +32,17 @@ async function verifyRuntime(load, exists) {
     assert.equal(exists(`/usr/local/bin/${binary}`), false);
   }
   const application = load('./package.json');
-  for (const name of ['picomatch', 'semver', 'send']) {
+  for (const name of ['picomatch', 'semver', 'send', 'debug', 'fresh']) {
     const expected = application.dependencies[`next-patched-${name}`].split('@').at(-1);
     assert.equal(load(`next/dist/compiled/${name}/package.json`).version, expected);
   }
   assert.equal(load('next/dist/compiled/picomatch')('*.js')('test.js'), true);
   assert.equal(load('next/dist/compiled/semver').satisfies(process.versions.node, '>=20.9.0'), true);
   assert.equal(typeof load('next/dist/compiled/send'), 'function');
+  const debug = load('next/dist/compiled/debug')('portfolio:smoke');
+  assert.equal(typeof debug, 'function');
+  assert.equal(debug.namespace, 'portfolio:smoke');
+  assert.equal(load('next/dist/compiled/fresh')({'if-none-match': '"fixture"'}, {etag: '"fixture"'}), true);
   const png = await load('sharp')({create: {width: 1, height: 1, channels: 3, background: '#000000'}}).png().toBuffer();
   assert.ok(png.length > 0);
 }

@@ -1,9 +1,9 @@
 import {FC, memo, useCallback, useMemo,useRef, useState} from 'react';
 import {MdExpandLess} from 'react-icons/md';
 
-import type {TimelineItem} from '../../../data/dataDef';
+import type {TimelineItem as TimelineItemData} from '../../../data/dataDef';
 
-const TimelineItem: FC<{item: TimelineItem}> = memo(({item}) => {
+const TimelineItem: FC<{item: TimelineItemData}> = memo(({item}) => {
   const {title, date, location, content} = item;
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);

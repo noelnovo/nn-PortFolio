@@ -1,0 +1,11 @@
+[run]
+branch = True
+source = ci
+relative_files = True
+omit = ci/test_*.py
+
+[report]
+fail_under = 80
+
+[xml]
+output = coverage/python.xml

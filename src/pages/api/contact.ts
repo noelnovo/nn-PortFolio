@@ -8,7 +8,13 @@ import type {NextApiRequest, NextApiResponse} from 'next';
  */
 type Body = {name?: string; email?: string; message?: string};
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function validEmail(value: string): boolean {
+  const parts = value.split('@');
+  if (parts.length !== 2 || !parts[0] || /\s/.test(value)) return false;
+  const domain = parts[1];
+  const dot = domain.indexOf('.', 1);
+  return dot > 0 && dot < domain.length - 1;
+}
 
 const WINDOW_MS = 10 * 60_000;
 const MAX_PER_WINDOW = 5;
@@ -44,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const from = clean(name, 80);
   const contact = clean(email, 254);
   const body = clean(message, 4000);
-  if (!from || !body || !EMAIL_RE.test(contact)) {
+  if (!from || !body || !validEmail(contact)) {
     res.status(400).json({error: 'Missing fields'});
     return;
   }

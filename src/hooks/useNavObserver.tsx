@@ -24,7 +24,7 @@ export const useNavObserver = (selectors: string, handler: (section: SectionId |
               isIntersecting: entry.isIntersecting,
               currentRatio: entry.intersectionRatio,
               aboveToc: currentY < headerWrapper.getBoundingClientRect().y,
-              belowToc: !(currentY < headerWrapper.getBoundingClientRect().y),
+              belowToc: currentY >= headerWrapper.getBoundingClientRect().y,
             };
             if (decision.isIntersecting) {
               // Header at 30% from the top, update to current header

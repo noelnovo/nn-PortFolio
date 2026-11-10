@@ -41,7 +41,7 @@ class RuntimeDependencySecurityTests(unittest.TestCase):
         self.assertIn('--reporter=lcov', command)
         self.assertIn('--check-coverage --lines=90 --functions=90 --branches=80', command)
         caller = (ROOT / '.github/workflows/security.yml').read_text()
-        self.assertIn('dependency-track-scan.yml@9e03f5d46e88ef4ce0afb9c307d0921ce343543b', caller)
+        self.assertIn('dependency-track-scan.yml@1af9e3f4564e160ba6e3dc0b495738c3c069254d', caller)
         self.assertNotIn('secrets: inherit', caller)
 
 
@@ -53,7 +53,7 @@ class VendorReplacementTests(unittest.TestCase):
         next_root = root / 'node_modules/next'
         next_root.mkdir(parents=True)
         (next_root / 'package.json').write_text('{"name":"next","version":"16.4.6"}')
-        for name in ['picomatch', 'semver', 'send']:
+        for name in ['picomatch', 'semver', 'send', 'debug', 'fresh']:
             alias = 'next-patched-' + name
             source = root / 'node_modules' / alias
             source.mkdir()
@@ -74,7 +74,7 @@ class VendorReplacementTests(unittest.TestCase):
             root = Path(directory)
             self.fixture(root)
             self.assertEqual(self.run_patch(root).returncode, 0)
-            for name in ['picomatch', 'semver', 'send']:
+            for name in ['picomatch', 'semver', 'send', 'debug', 'fresh']:
                 target = root / 'node_modules/next/dist/compiled' / name
                 self.assertEqual((target / 'index.js').read_text(), 'patched-' + name)
                 self.assertIn('version', json.loads((target / 'package.json').read_text()))
@@ -85,7 +85,7 @@ class VendorReplacementTests(unittest.TestCase):
             self.fixture(root)
             (root / 'node_modules/next-patched-semver/package.json').write_text('{"name":"semver","version":"0.0.0"}')
             self.assertNotEqual(self.run_patch(root).returncode, 0)
-            for name in ['picomatch', 'semver', 'send']:
+            for name in ['picomatch', 'semver', 'send', 'debug', 'fresh']:
                 self.assertEqual((root / 'node_modules/next/dist/compiled' / name / 'index.js').read_text(), 'old-' + name)
 
     def test_symlink_destination_cannot_delete_or_replace_outside_data(self):

@@ -8,6 +8,7 @@ RUN npm ci && node ci/patch-next-vendors.mjs
 FROM deps AS security-tests
 RUN apk add --no-cache python3 py3-coverage
 COPY ci ./ci
+COPY .github/workflows/security.yml .github/workflows/build-push.yml ./.github/workflows/
 COPY src ./src
 COPY tests ./tests
 COPY vitest.config.mts tsconfig.json ./

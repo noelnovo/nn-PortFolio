@@ -4,12 +4,14 @@
 // or exclude components from the SBOM. Keep each library on its compatible line.
 import {cpSync, lstatSync, readFileSync, realpathSync, rmSync} from 'node:fs';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 
-const root = process.cwd();
+const PACKAGE_MANIFEST = 'package.json';
 const readJson = file => JSON.parse(readFileSync(file, 'utf8'));
-const application = readJson(path.join(root, 'package.json'));
+export function patchNextVendors(root) {
+const application = readJson(path.join(root, PACKAGE_MANIFEST));
 const nextRoot = path.join(root, 'node_modules', 'next');
-const next = readJson(path.join(nextRoot, 'package.json'));
+const next = readJson(path.join(nextRoot, PACKAGE_MANIFEST));
 if (next.version !== '16.4.6' || application.dependencies.next !== next.version) {
   throw new Error('Review vendor patches before changing the pinned Next release');
 }
@@ -30,8 +32,8 @@ function verifiedReplacement(name) {
   if (lstatSync(source).isSymbolicLink() || lstatSync(target).isSymbolicLink()) {
     throw new Error('Vendor source and destination must be physical directories');
   }
-  const installed = readJson(path.join(source, 'package.json'));
-  const original = readJson(path.join(target, 'package.json'));
+  const installed = readJson(path.join(source, PACKAGE_MANIFEST));
+  const original = readJson(path.join(target, PACKAGE_MANIFEST));
   if (installed.name !== name || original.name !== name || installed.version !== spec.slice(prefix.length)) {
     throw new Error('Installed package identity does not match the reviewed alias');
   }
@@ -44,4 +46,9 @@ for (const replacement of replacements) {
   rmSync(replacement.target, {recursive: true});
   cpSync(replacement.source, replacement.target, {recursive: true, dereference: true});
 }
-console.log(JSON.stringify({patchedNextVendorPackages: replacements.map(({name, version}) => ({name, version}))}));
+return replacements.map(({name, version}) => ({name, version}));
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  console.log(JSON.stringify({patchedNextVendorPackages: patchNextVendors(process.cwd())}));
+}

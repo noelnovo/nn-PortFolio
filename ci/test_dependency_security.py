@@ -28,9 +28,21 @@ class RuntimeDependencySecurityTests(unittest.TestCase):
         self.assertIn('/opt/yarn-v*', runner)
         self.assertIn('USER nextjs', runner)
         self.assertIn('CMD ["node", "server.js"]', runner)
-        self.assertEqual(dockerfile.count('node:22-alpine@sha256:'), 3)
+        self.assertEqual(dockerfile.count('node@sha256:'), 2)
+        self.assertIn('FROM security-tests AS builder', dockerfile)
+        self.assertIn('FROM scratch AS security-coverage', dockerfile)
         self.assertIn('RUN npm ci && node ci/patch-next-vendors.mjs', dockerfile)
         self.assertIn('RUN node /tmp/portfolio-runtime-smoke.cjs && rm /tmp/portfolio-runtime-smoke.cjs', runner)
+
+    def test_real_coverage_is_collected_and_sent_through_reviewed_shared_workflow(self):
+        package = json.loads((ROOT / 'package.json').read_text())
+        command = package['scripts']['test:build-tools']
+        self.assertIn('node --test ci/test_build_tools.cjs', command)
+        self.assertIn('--reporter=lcov', command)
+        self.assertIn('--check-coverage --lines=90 --functions=90 --branches=80', command)
+        caller = (ROOT / '.github/workflows/security.yml').read_text()
+        self.assertIn('dependency-track-scan.yml@9e03f5d46e88ef4ce0afb9c307d0921ce343543b', caller)
+        self.assertNotIn('secrets: inherit', caller)
 
 
 @unittest.skipUnless(shutil.which('node'), 'Synthetic vendor replacement requires Node')

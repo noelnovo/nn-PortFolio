@@ -19,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate canonical registry and GitOps references
+        run: python3 -m unittest discover -s ci -p test_portfolio_delivery.py
 
       - name: Authenticate to Vault using GitHub OIDC
         run: |
@@ -82,32 +87,29 @@ jobs:
           SHORT="${GITHUB_SHA::7}"
           VERSION="$(tr -d '\n' < VERSION)"
           TAG="${VERSION}-${SHORT}"
-          IMAGE="${HARBOR_URL}/portfolio/nn-portfolio"
+          IMAGE="${HARBOR_URL}/noelnovo/nn-portfolio"
           echo "TAG=${TAG}" >>"$GITHUB_ENV"
           echo "$HARBOR_ROBOT_SECRET" | docker login "$HARBOR_URL" \
             -u "$HARBOR_ROBOT_NAME" --password-stdin
-          docker build -t "${IMAGE}:${TAG}" -t "${IMAGE}:latest" .
+          docker build --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            -t "${IMAGE}:${TAG}" .
           docker push "${IMAGE}:${TAG}"
-          docker push "${IMAGE}:latest"
 
       - name: Update ArgoCD image reference
         run: |
-          python3 - <<'PY'
-          import os, pathlib, re
-          manifest = pathlib.Path('k8s/app.yaml')
-          text = manifest.read_text()
-          image = 'registry.int.downops.win/noelnovo/nn-portfolio:' + os.environ['TAG']
-          updated, count = re.subn(
-              r'(?m)^(\s*image:\s*)registry\.int\.downops\.win/portfolio/nn-portfolio:\S+$',
-              lambda match: match.group(1) + image,
-              text,
-              count=1,
-          )
-          if count != 1:
-              raise SystemExit('expected one portfolio image reference')
-          manifest.write_text(updated)
-          PY
+          set -euo pipefail
+          git fetch origin main
+          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            echo 'Superseded source revision; do not overwrite newer main.'
+            exit 0
+          fi
+          python3 ci/portfolio_delivery.py
+          if git diff --quiet -- k8s/app.yaml; then
+            echo 'manifest unchanged'
+            exit 0
+          fi
           git config user.name 'nn-portfolio-ci'
           git config user.email 'nn-portfolio-ci@downops.win'
           git add k8s/app.yaml
-          git commit -m "[skip ci] Deploy ${TAG}" && git push origin HEAD:main || echo 'manifest unchanged'
+          git commit -m "[skip ci] Deploy ${TAG}"
+          git push origin HEAD:main

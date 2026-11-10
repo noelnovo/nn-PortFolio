@@ -12,7 +12,7 @@ COPY .github/workflows/security.yml .github/workflows/build-push.yml ./.github/w
 COPY src ./src
 COPY tests ./tests
 COPY vitest.config.mts tsconfig.json ./
-COPY .coveragerc ./
+COPY .coveragerc Dockerfile ./
 RUN npm run test:build-tools && npm test \
     && cat coverage/app/lcov.info >> coverage/lcov.info \
     && python3 -m coverage run -m unittest discover -s ci -p 'test_*.py' \

@@ -22,7 +22,7 @@ spec:
         - name: harbor-pull-noelnovo
       containers:
         - name: portfolio
-          image: registry.int.downops.win/noelnovo/nn-portfolio:0.1.0-062bfac
+          image: registry.int.downops.win/noelnovo/nn-portfolio:0.1.0-ec00094
           ports:
             - containerPort: 3000
           env:

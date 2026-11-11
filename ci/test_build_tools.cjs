@@ -63,6 +63,18 @@ afterEach(() => {
   for (const root of roots.splice(0)) fs.rmSync(root, {recursive: true, force: true});
 });
 
+test('standalone tracing includes only the nanoid non-secure resolution files and test-stage config input', () => {
+  const config = require('../next.config.js');
+  assert.equal(config.output, 'standalone');
+  assert.deepEqual(config.outputFileTracingIncludes, {'/*': [
+    './node_modules/next/dist/compiled/nanoid/non-secure/package.json',
+    './node_modules/next/dist/compiled/nanoid/non-secure/index.cjs',
+  ]});
+  const dockerfile = fs.readFileSync(path.join(__dirname, '../Dockerfile'), 'utf8');
+  const tests = dockerfile.split('FROM deps AS security-tests\n')[1].split('FROM scratch AS security-coverage\n')[0];
+  assert.ok(tests.includes('COPY vitest.config.mts tsconfig.json next.config.js ./'));
+});
+
 test('vendor replacement copies actual code and exact metadata', async () => {
   const root = fixture();
   const result = (await patcher()).patchNextVendors(root);

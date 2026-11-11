@@ -55,6 +55,14 @@ nanoid uses built-in crypto and ws supports JavaScript operation without its
 optional native accelerators. Runtime smoke checks their CommonJS APIs as well
 as the installed versions; a full standalone image build remains required.
 
+For standalone packaging, `outputFileTracingIncludes` explicitly includes only
+the patched nanoid `non-secure/package.json` and `non-secure/index.cjs` for all
+server routes, using Next's documented `/*` route key and project-relative paths.
+Those two files form the non-secure CommonJS resolution closure (its entry has
+no imports). This preserves the existing runtime smoke rather than removing its
+non-secure checks; a fresh final-image build must still verify the result.
+See [Next output tracing](https://nextjs.org/docs/app/api-reference/config/next-config-js/output).
+
 Advisory references: nanoid 3.3.18 fixes
 [CVE-2026-67214](https://github.com/advisories/GHSA-28wg-ghj8-5hjv)
 (affected 3.x versions `<3.3.16`) and

@@ -8,7 +8,7 @@ PULL_IMAGE = 'registry.int.downops.win/' + REPOSITORY
 
 
 def update_manifest(text, tag):
-    if not re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_.-]*-[0-9a-f]{7,40}', tag) or len(tag) > 128:
+    if not re.fullmatch(r'\w[\w.-]*-[0-9a-f]{7,40}', tag, flags=re.ASCII) or len(tag) > 128:
         raise ValueError('An immutable version-and-commit tag is required')
     pattern = r'(?m)^(\s*image:\s*)' + re.escape(PULL_IMAGE) + r':[^\s]+$'
     updated, count = re.subn(pattern, lambda match: match.group(1) + PULL_IMAGE + ':' + tag, text)

@@ -6,11 +6,21 @@ COPY ci/patch-next-vendors.mjs ./ci/patch-next-vendors.mjs
 RUN npm ci && node ci/patch-next-vendors.mjs
 
 FROM deps AS security-tests
+RUN apk add --no-cache python3 py3-coverage
 COPY ci ./ci
-RUN npm run test:build-tools
+COPY .github/workflows/security.yml .github/workflows/build-push.yml ./.github/workflows/
+COPY src ./src
+COPY tests ./tests
+COPY vitest.config.mts tsconfig.json ./
+COPY .coveragerc Dockerfile ./
+RUN npm run test:build-tools && npm test \
+    && cat coverage/app/lcov.info >> coverage/lcov.info \
+    && python3 -m coverage run -m unittest discover -s ci -p 'test_*.py' \
+    && python3 -m coverage xml
 
 FROM scratch AS security-coverage
 COPY --from=security-tests /app/coverage/lcov.info /lcov.info
+COPY --from=security-tests /app/coverage/python.xml /python.xml
 
 FROM security-tests AS builder
 WORKDIR /app

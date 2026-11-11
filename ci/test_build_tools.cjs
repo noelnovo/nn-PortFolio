@@ -9,7 +9,7 @@ const {EventEmitter} = require('node:events');
 const smoke = require('./runtime-smoke.cjs');
 
 const roots = [];
-const versions = {picomatch: '4.0.7', semver: '7.8.6', send: '0.19.2'};
+const versions = {picomatch: '4.0.7', semver: '7.8.6', send: '0.19.2', debug: '4.4.3', fresh: '0.5.2'};
 const patcherPath = path.join(__dirname, 'patch-next-vendors.mjs');
 const patcher = () => import(pathToFileURL(patcherPath).href);
 const writeJson = (file, value) => fs.writeFileSync(file, JSON.stringify(value));
@@ -42,7 +42,7 @@ afterEach(() => {
 test('vendor replacement copies actual code and exact metadata', async () => {
   const root = fixture();
   const result = (await patcher()).patchNextVendors(root);
-  assert.equal(result.length, 3);
+  assert.equal(result.length, Object.keys(versions).length);
   for (const [name, version] of Object.entries(versions)) {
     const target = path.join(root, 'node_modules/next/dist/compiled', name);
     assert.equal(fs.readFileSync(path.join(target, 'index.js'), 'utf8'), `patched-${name}`);
@@ -54,7 +54,7 @@ test('patcher CLI executes the same reviewed replacement', () => {
   const root = fixture();
   const result = spawnSync(process.execPath, [patcherPath], {cwd: root, encoding: 'utf8'});
   assert.equal(result.status, 0);
-  assert.equal(JSON.parse(result.stdout).patchedNextVendorPackages.length, 3);
+  assert.equal(JSON.parse(result.stdout).patchedNextVendorPackages.length, Object.keys(versions).length);
 });
 
 test('unsupported Next release or mismatched root pin fails before mutation', async () => {
@@ -155,6 +155,8 @@ function applicationLoad(overrides = {}) {
     'next/dist/compiled/picomatch': () => () => true,
     'next/dist/compiled/semver': {satisfies: () => true},
     'next/dist/compiled/send': () => {},
+    'next/dist/compiled/debug': namespace => Object.assign(() => {}, {namespace}),
+    'next/dist/compiled/fresh': () => true,
     sharp: () => ({png: () => ({toBuffer: async () => Buffer.from('png')})}),
     ...overrides,
   };

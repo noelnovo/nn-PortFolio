@@ -11,7 +11,7 @@ COPY ci ./ci
 COPY .github/workflows/security.yml .github/workflows/build-push.yml ./.github/workflows/
 COPY src ./src
 COPY tests ./tests
-COPY vitest.config.mts tsconfig.json ./
+COPY vitest.config.mts tsconfig.json next.config.js ./
 COPY .coveragerc Dockerfile ./
 RUN npm run test:build-tools && npm test \
     && cat coverage/app/lcov.info >> coverage/lcov.info \

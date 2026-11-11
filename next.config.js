@@ -3,6 +3,12 @@
 // https://github.com/vercel/next.js/blob/master/packages/next/next-server/server/config.ts
 const nextConfig = {
   output: 'standalone',
+  outputFileTracingIncludes: {
+    '/*': [
+      './node_modules/next/dist/compiled/nanoid/non-secure/package.json',
+      './node_modules/next/dist/compiled/nanoid/non-secure/index.cjs',
+    ],
+  },
   compress: true,
   generateEtags: true,
   pageExtensions: ['tsx', 'mdx', 'ts'],

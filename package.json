@@ -21,9 +21,11 @@
     "next": "16.4.6",
     "next-patched-debug": "npm:debug@4.4.3",
     "next-patched-fresh": "npm:fresh@0.5.2",
+    "next-patched-nanoid": "npm:nanoid@3.3.18",
     "next-patched-picomatch": "npm:picomatch@4.0.7",
     "next-patched-semver": "npm:semver@7.8.6",
     "next-patched-send": "npm:send@0.19.2",
+    "next-patched-ws": "npm:ws@8.21.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-icons": "^5.7.0"

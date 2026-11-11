@@ -392,14 +392,14 @@ test('CLI emits only one sanitized JSON diagnostic and exits nonzero for untrust
   const root = fixture();
   const sentinel = 'SYNTHETIC_CLI_ERROR_PAYLOAD_MUST_NOT_BE_LOGGED';
   const preload = path.join(root, 'preload.cjs');
-  fs.writeFileSync(preload, `const Module = require('node:module');
-    const original = Module._load;
-    Module._load = function(request, ...args) {
-      if (request === './package.json') {
+  fs.writeFileSync(preload, `const fs = require('node:fs');
+    const original = fs.existsSync;
+    fs.existsSync = function(file) {
+      if (file === '/usr/local/bin/npm') {
         const error = new Error('${sentinel}');
         error.stack = '${sentinel}'; error.cause = '${sentinel}'; error.code = '${sentinel}'; throw error;
       }
-      return original.call(this, request, ...args);
+      return original.call(this, file);
     };`);
   const result = spawnSync(process.execPath, ['--require', preload, path.join(__dirname, 'runtime-smoke.cjs')], {cwd: root, encoding: 'utf8'});
   assert.equal(result.status, 1);

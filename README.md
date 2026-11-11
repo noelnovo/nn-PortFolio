@@ -9,6 +9,13 @@ I dont mean to "flex" my humble frontend skills because of the simple fact that 
 
 ## Credential-free verification
 
+On small screens, navigation is a nonmodal disclosure: use its open/close toggle,
+tap outside it, or press Escape to dismiss. It does not lock page scrolling or trap
+keyboard focus. Choosing a section closes the menu and focuses that section.
+Anchor scrolling respects the browser's reduced-motion preference.
+Work history responsibilities are always visible in a chronological timeline;
+education retains individually labelled, keyboard-accessible detail toggles.
+
 Use Node 22.12 or newer in the Node 22 family (the Dockerfile pins the build and
 runtime image). No real mail, Vault or scanner credentials are needed:
 
@@ -25,6 +32,13 @@ and the contact API with synthetic transport responses. It measures all producti
 TypeScript/TSX under `src`, including initially uncovered files. The existing
 build-tool LCOV report and application LCOV report are combined only after both
 suites pass; line, branch and function thresholds must not be bypassed.
+
+Navigation regressions cover touch/mouse outside dismissal, close/Escape/link
+actions, focus return and destination focus, inside interactions, resize and
+listener cleanup. Resume tests compare every rendered work bullet to the original
+data. Check the actual responsive layout in a browser too (320–430px, landscape,
+1024px and 1440px); DOM tests alone do not prove reflow, touch sizing or visibility.
+Do not submit the real contact form during browser checks.
 
 For Python delivery/probe helpers, use a repo-local environment with `coverage`:
 

@@ -6,12 +6,13 @@ import Home from '../src/pages/index';
 import Header from '../src/components/Sections/Header';
 import ContactForm from '../src/components/Sections/Contact/ContactForm';
 import TimelineItem from '../src/components/Sections/Resume/TimelineItem';
+import Resume from '../src/components/Sections/Resume';
 import Base from '../src/components/Base';
 import Section from '../src/components/Layout/Section';
 import useDetectOutsideClick from '../src/hooks/useDetectOutsideClick';
 import useInterval from '../src/hooks/useInterval';
 import {useNavObserver} from '../src/hooks/useNavObserver';
-import {SectionId} from '../src/data/data';
+import {education, experience, SectionId} from '../src/data/data';
 
 vi.mock('next/router', () => ({useRouter: () => ({asPath: '/'})}));
 vi.mock('next/dynamic', () => ({default: (load: any) => React.lazy(load)}));
@@ -40,17 +41,40 @@ describe('preserved portfolio content and components', () => {
     expect(screen.getAllByRole('link').some(link => link.getAttribute('href')?.includes('WalletTracker'))).toBe(true);
   });
 
-  it('keeps resume detail toggling and section padding behavior', () => {
+  it('keeps education detail toggling accessible and section padding behavior', () => {
     const item = {title: 'Developer', location: 'Company', date: '2026', content: <p>Detailed responsibilities</p>};
     const {container} = render(<TimelineItem item={item} />);
-    const detail = container.querySelector('#container') as HTMLElement;
-    expect(detail.style.height).toBe('0px');
-    fireEvent.click(container.querySelector('svg')!);
-    expect(detail.style.height).toBe('100%');
-    fireEvent.click(container.querySelector('svg')!);
-    expect(detail.style.height).toBe('0px');
+    const toggle = screen.getByRole('button', {name:'Show Developer details'});
+    const detail = document.getElementById(toggle.getAttribute('aria-controls')!)!;
+    expect(detail.hidden).toBe(true);
+    fireEvent.click(toggle);
+    expect(detail.hidden).toBe(false);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.click(toggle);
+    expect(detail.hidden).toBe(true);
+    expect(container.querySelectorAll('[id]').length).toBe(1);
     const section = render(<Section sectionId={SectionId.About}><Base /></Section>);
     expect(section.container.querySelector('section')?.className).toContain('py-16');
+  });
+
+  it.each([390, 1440])('shows every work bullet without expansion at %spx, preserving education', width => {
+    vi.stubGlobal('innerWidth', width);
+    const {container} = render(<Resume />);
+    const articles = container.querySelectorAll('article');
+    expect(articles.length).toBe(experience.length);
+    experience.forEach((item, index) => {
+      const article = articles[index];
+      expect(article.querySelector('h3')?.textContent).toBe(item.title);
+      expect(article.textContent).toContain(item.location);
+      expect(article.textContent).toContain(item.date);
+      expect(article.querySelector('button, [hidden]')).toBeNull();
+      const expected = render(<>{item.content}</>);
+      expect(Array.from(article.querySelectorAll('li'), li => li.textContent)).toEqual(
+        Array.from(expected.container.querySelectorAll('li'), li => li.textContent),
+      );
+      expected.unmount();
+    });
+    expect(screen.getAllByRole('button').length).toBe(education.length);
   });
 
   it('updates active navigation on visibility and disconnects on cleanup', () => {
@@ -61,6 +85,110 @@ describe('preserved portfolio content and components', () => {
     act(() => observer.emit([{target: container.querySelector('#resume'), boundingClientRect: {y: 10}, isIntersecting: false, intersectionRatio: .5}]));
     expect(observer.watch).toHaveBeenCalled();
     unmount(); expect(observer.disconnect).toHaveBeenCalled();
+  });
+});
+
+describe('mobile navigation disclosure', () => {
+  function navigation() {
+    observe();
+    const view = render(<><Header /><section id="about" /><section id="resume" /><button>Outside control</button></>);
+    const toggle = screen.getByRole('button', {name:'Open navigation'});
+    fireEvent.click(toggle);
+    const nav = screen.getByRole('navigation', {name:'Mobile navigation'});
+    return {...view, toggle, nav};
+  }
+
+  it('has a visible close toggle, stable controls and safe inside pointer interaction', () => {
+    const {toggle, nav} = navigation();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(toggle.getAttribute('aria-controls')).toBe(nav.id);
+    expect(toggle.getAttribute('aria-label')).toBe('Close navigation');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.pointerDown(nav, {pointerType:'touch'});
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.click(toggle);
+    expect(nav.hidden).toBe(true);
+  });
+
+  it.each(['touch', 'mouse'])('dismisses outside %s pointers and returns focus without locking scroll', pointerType => {
+    document.body.style.overflow = 'auto';
+    try {
+      const {toggle, nav} = navigation();
+      fireEvent.pointerDown(document.body, {pointerType});
+      expect(nav.hidden).toBe(true);
+      expect(document.activeElement).toBe(toggle);
+      expect(document.body.style.overflow).toBe('auto');
+    } finally {document.body.style.overflow = '';}
+  });
+
+  it('ignores other keys, dismisses Escape and restores the opener', () => {
+    const {toggle, nav} = navigation();
+    act(() => (nav.querySelector('a') as HTMLElement).focus());
+    fireEvent.keyDown(document, {key:'ArrowDown'});
+    expect(nav.hidden).toBe(false);
+    fireEvent.keyDown(document, {key:'Escape'});
+    expect(nav.hidden).toBe(true);
+    expect(document.activeElement).toBe(toggle);
+  });
+
+  it('closes on a section link and focuses its destination rather than the opener', () => {
+    const {toggle, nav, container} = navigation();
+    fireEvent.click(nav.querySelector('a[href="/#resume"]')!);
+    const destination = container.querySelector('#resume')!;
+    expect(nav.hidden).toBe(true);
+    expect(document.activeElement).toBe(destination);
+    expect(document.activeElement).not.toBe(toggle);
+    act(() => toggle.focus());
+    expect(destination.hasAttribute('tabindex')).toBe(false);
+    destination.setAttribute('tabindex', '0');
+    fireEvent.click(toggle);
+    fireEvent.click(nav.querySelector('a[href="/#resume"]')!);
+    act(() => toggle.focus());
+    expect(destination.getAttribute('tabindex')).toBe('0');
+    fireEvent.click(toggle);
+    fireEvent.click(nav.querySelector('a[href="/#contact"]')!);
+    expect(nav.hidden).toBe(true);
+  });
+
+  it('lets keyboard focus leave the nonmodal disclosure', () => {
+    const {nav} = navigation();
+    const outside = screen.getByRole('button', {name:'Outside control'});
+    act(() => outside.focus());
+    expect(nav.hidden).toBe(true);
+    expect(document.activeElement).toBe(outside);
+  });
+
+  it('does not cancel native pointer activation on another control', () => {
+    const {nav} = navigation();
+    const outside = screen.getByRole('button', {name:'Outside control'});
+    expect(fireEvent.pointerDown(outside, {pointerType:'touch', cancelable:true})).toBe(true);
+    act(() => outside.focus());
+    expect(nav.hidden).toBe(true);
+    expect(document.activeElement).toBe(outside);
+  });
+
+  it('resets on desktop resize/media change and removes listeners on unmount', () => {
+    const media = {matches:false, addEventListener:vi.fn(), removeEventListener:vi.fn()};
+    vi.stubGlobal('matchMedia', vi.fn(() => media));
+    const {toggle, nav, unmount} = navigation();
+    fireEvent(window, new Event('resize'));
+    expect(nav.hidden).toBe(false);
+    media.matches = true;
+    act(() => media.addEventListener.mock.calls[0][1]());
+    expect(nav.hidden).toBe(true);
+    media.matches = false;
+    fireEvent.click(toggle);
+    media.matches = true;
+    fireEvent(window, new Event('resize'));
+    expect(nav.hidden).toBe(true);
+    media.matches = false;
+    fireEvent.click(toggle);
+    const remove = vi.spyOn(document, 'removeEventListener');
+    unmount();
+    expect(remove.mock.calls.map(call => call[0])).toEqual(expect.arrayContaining(['pointerdown', 'keydown', 'focusin']));
+    expect(media.removeEventListener).toHaveBeenCalled();
+    expect(document.body.style.overflow).toBe('');
+    fireEvent.keyDown(document, {key:'Escape'});
   });
 });
 

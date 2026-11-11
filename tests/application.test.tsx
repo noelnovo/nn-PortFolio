@@ -52,7 +52,7 @@ describe('preserved portfolio content and components', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     fireEvent.click(toggle);
     expect(detail.hidden).toBe(true);
-    expect(container.querySelectorAll('[id]').length).toBe(1);
+    expect(container.querySelectorAll('[id]')).toHaveLength(1);
     const section = render(<Section sectionId={SectionId.About}><Base /></Section>);
     expect(section.container.querySelector('section')?.className).toContain('py-16');
   });
@@ -61,7 +61,7 @@ describe('preserved portfolio content and components', () => {
     vi.stubGlobal('innerWidth', width);
     const {container} = render(<Resume />);
     const articles = container.querySelectorAll('article');
-    expect(articles.length).toBe(experience.length);
+    expect(articles).toHaveLength(experience.length);
     experience.forEach((item, index) => {
       const article = articles[index];
       expect(article.querySelector('h3')?.textContent).toBe(item.title);
@@ -74,7 +74,7 @@ describe('preserved portfolio content and components', () => {
       );
       expected.unmount();
     });
-    expect(screen.getAllByRole('button').length).toBe(education.length);
+    expect(screen.getAllByRole('button')).toHaveLength(education.length);
   });
 
   it('updates active navigation on visibility and disconnects on cleanup', () => {

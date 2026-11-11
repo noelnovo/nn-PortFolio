@@ -32,7 +32,7 @@ async function verifyRuntime(load, exists) {
     assert.equal(exists(`/usr/local/bin/${binary}`), false);
   }
   const application = load('./package.json');
-  for (const name of ['picomatch', 'semver', 'send', 'debug', 'fresh']) {
+  for (const name of ['picomatch', 'semver', 'send', 'debug', 'fresh', 'nanoid', 'ws']) {
     const expected = application.dependencies[`next-patched-${name}`].split('@').at(-1);
     assert.equal(load(`next/dist/compiled/${name}/package.json`).version, expected);
   }
@@ -43,6 +43,21 @@ async function verifyRuntime(load, exists) {
   assert.equal(typeof debug, 'function');
   assert.equal(debug.namespace, 'portfolio:smoke');
   assert.equal(load('next/dist/compiled/fresh')({'if-none-match': '"fixture"'}, {etag: '"fixture"'}), true);
+  const {nanoid, customAlphabet} = load('next/dist/compiled/nanoid');
+  assert.equal(typeof load('next/dist/compiled/nanoid/index.cjs').nanoid, 'function');
+  assert.match(nanoid(), /^[\w-]{21}$/);
+  assert.match(customAlphabet('abc', 12)(), /^[abc]{12}$/);
+  assert.equal(customAlphabet('abc', 0)(), '');
+  const nonSecure = load('next/dist/compiled/nanoid/non-secure');
+  assert.equal(nonSecure.nanoid(-1), '');
+  assert.equal(nonSecure.customAlphabet('abc', -1)(), '');
+  const WebSocket = load('next/dist/compiled/ws');
+  assert.equal(typeof WebSocket, 'function');
+  assert.equal(WebSocket.WebSocket, WebSocket);
+  assert.equal(WebSocket.Server, WebSocket.WebSocketServer);
+  assert.equal(typeof WebSocket.Server, 'function');
+  assert.equal(typeof WebSocket.Server.prototype.address, 'function');
+  assert.equal(WebSocket.OPEN, 1);
   const png = await load('sharp')({create: {width: 1, height: 1, channels: 3, background: '#000000'}}).png().toBuffer();
   assert.ok(png.length > 0);
 }

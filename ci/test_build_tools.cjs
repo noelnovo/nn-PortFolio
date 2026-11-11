@@ -9,10 +9,25 @@ const {EventEmitter} = require('node:events');
 const smoke = require('./runtime-smoke.cjs');
 
 const roots = [];
-const versions = {picomatch: '4.0.7', semver: '7.8.6', send: '0.19.2', debug: '4.4.3', fresh: '0.5.2'};
+const versions = {picomatch: '4.0.7', semver: '7.8.6', send: '0.19.2', debug: '4.4.3', fresh: '0.5.2', nanoid: '3.3.18', ws: '8.21.0'};
 const patcherPath = path.join(__dirname, 'patch-next-vendors.mjs');
 const patcher = () => import(pathToFileURL(patcherPath).href);
 const writeJson = (file, value) => fs.writeFileSync(file, JSON.stringify(value));
+const entryFiles = {
+  picomatch: ['index.js'], semver: ['index.js'], send: ['index.js'],
+  debug: ['src/index.js', 'src/node.js', 'src/common.js'], fresh: ['index.js'],
+  nanoid: ['index.cjs', 'non-secure/index.cjs', 'url-alphabet/index.cjs'],
+  ws: ['index.js', 'lib/websocket.js', 'lib/websocket-server.js'],
+};
+
+function assertTargetsUntouched(root) {
+  for (const name of Object.keys(versions)) {
+    const target = path.join(root, 'node_modules/next/dist/compiled', name);
+    assert.deepEqual(fs.readdirSync(target).sort(), ['index.js', 'package.json']);
+    assert.equal(fs.readFileSync(path.join(target, 'index.js'), 'utf8'), `original-${name}`);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(target, 'package.json'))), {name});
+  }
+}
 
 function fixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'portfolio-vendor-test-'));
@@ -27,9 +42,18 @@ function fixture() {
     const target = path.join(nextRoot, 'dist', 'compiled', name);
     fs.mkdirSync(source, {recursive: true});
     fs.mkdirSync(target, {recursive: true});
-    writeJson(path.join(source, 'package.json'), {name, version});
+    const metadata = {name, version};
+    if (!['send', 'fresh'].includes(name)) metadata.main = entryFiles[name][0];
+    if (name === 'nanoid') metadata.exports = {'.': {require: {default: './index.cjs'}},
+      './non-secure': {require: {default: './non-secure/index.cjs'}}};
+    if (name === 'ws') metadata.exports = {'.': {require: './index.js'}, './lib/*': ['./lib/*.js', null]};
+    writeJson(path.join(source, 'package.json'), metadata);
     writeJson(path.join(target, 'package.json'), {name});
     fs.writeFileSync(path.join(source, 'index.js'), `patched-${name}`);
+    for (const file of entryFiles[name]) {
+      fs.mkdirSync(path.dirname(path.join(source, file)), {recursive: true});
+      fs.writeFileSync(path.join(source, file), `patched-${name}`);
+    }
     fs.writeFileSync(path.join(target, 'index.js'), `original-${name}`);
   }
   return root;
@@ -84,10 +108,11 @@ test('inexact, missing or wrong-package aliases are rejected', async () => {
 
 test('every package identity is validated before any file is replaced', async () => {
   const {patchNextVendors} = await patcher();
+  for (const name of Object.keys(versions)) {
   for (const change of ['source-name', 'target-name', 'version']) {
     const root = fixture();
-    const file = change === 'target-name' ? path.join(root, 'node_modules/next/dist/compiled/semver/package.json')
-      : path.join(root, 'node_modules/next-patched-semver/package.json');
+    const file = change === 'target-name' ? path.join(root, `node_modules/next/dist/compiled/${name}/package.json`)
+      : path.join(root, `node_modules/next-patched-${name}/package.json`);
     const data = JSON.parse(fs.readFileSync(file));
     if (change === 'version') data.version = '0.0.0';
     else data.name = 'other';
@@ -95,11 +120,25 @@ test('every package identity is validated before any file is replaced', async ()
     assert.throws(() => patchNextVendors(root), /identity/);
     assert.equal(fs.readFileSync(path.join(root, 'node_modules/next/dist/compiled/picomatch/index.js'), 'utf8'), 'original-picomatch');
   }
+  }
+});
+
+test('missing new vendor inputs fail before any replacement', async () => {
+  const {patchNextVendors} = await patcher();
+  for (const name of ['nanoid', 'ws']) {
+    for (const relative of [`node_modules/next-patched-${name}`, `node_modules/next/dist/compiled/${name}`]) {
+      const root = fixture();
+      fs.rmSync(path.join(root, relative), {recursive: true});
+      assert.throws(() => patchNextVendors(root), /ENOENT/);
+      assert.equal(fs.readFileSync(path.join(root, 'node_modules/next/dist/compiled/picomatch/index.js'), 'utf8'), 'original-picomatch');
+    }
+  }
 });
 
 test('symlinked root, package destination or source cannot escape the tree', async () => {
   const {patchNextVendors} = await patcher();
-  for (const target of ['node_modules/next/dist/compiled', 'node_modules/next/dist/compiled/send', 'node_modules/next-patched-send']) {
+  for (const target of ['node_modules/next/dist/compiled', ...Object.keys(versions).flatMap(name =>
+    [`node_modules/next/dist/compiled/${name}`, `node_modules/next-patched-${name}`])]) {
     const root = fixture();
     const outside = path.join(root, 'retained');
     fs.mkdirSync(outside);
@@ -108,6 +147,99 @@ test('symlinked root, package destination or source cannot escape the tree', asy
     fs.symlinkSync(outside, path.join(root, target), 'dir');
     assert.throws(() => patchNextVendors(root), /symlink|physical/);
     assert.equal(fs.readFileSync(path.join(outside, 'marker'), 'utf8'), 'keep');
+  }
+});
+
+test('nested source file and directory symlinks fail before any replacement, even in the seventh package', async () => {
+  const {patchNextVendors} = await patcher();
+  for (const kind of ['file', 'directory', 'dangling', 'internal']) {
+    const root = fixture();
+    const outside = path.join(root, 'retained');
+    fs.mkdirSync(outside);
+    fs.writeFileSync(path.join(outside, 'marker'), 'keep');
+    const source = path.join(root, 'node_modules/next-patched-ws');
+    const destination = kind === 'directory' ? outside : kind === 'internal' ? path.join(source, 'index.js')
+      : path.join(outside, kind === 'dangling' ? 'missing' : 'marker');
+    fs.symlinkSync(destination, path.join(source, 'lib/unsafe'), kind === 'directory' ? 'dir' : 'file');
+    assert.throws(() => patchNextVendors(root), /regular|physical|symlink/);
+    assertTargetsUntouched(root);
+    assert.equal(fs.readFileSync(path.join(outside, 'marker'), 'utf8'), 'keep');
+  }
+});
+
+test('unexpected source file types and non-directory package roots fail before mutation', async () => {
+  const {patchNextVendors} = await patcher();
+  for (const kind of ['fifo', 'source-file', 'target-file']) {
+    const root = fixture();
+    if (kind === 'fifo') {
+      assert.equal(spawnSync('mkfifo', [path.join(root, 'node_modules/next-patched-ws/lib/pipe')]).status, 0);
+    } else {
+      const file = path.join(root, kind === 'source-file' ? 'node_modules/next-patched-ws' : 'node_modules/next/dist/compiled/ws');
+      fs.rmSync(file, {recursive: true});
+      fs.writeFileSync(file, 'not a directory');
+    }
+    assert.throws(() => patchNextVendors(root), /regular|physical/);
+    if (kind !== 'target-file') assertTargetsUntouched(root);
+    else assert.equal(fs.readFileSync(path.join(root, 'node_modules/next/dist/compiled/ws'), 'utf8'), 'not a directory');
+  }
+});
+
+test('destination manifest symlinks or directories are rejected without reading or changing targets', async () => {
+  const {patchNextVendors} = await patcher();
+  for (const kind of ['symlink', 'directory']) {
+    const root = fixture();
+    const target = path.join(root, 'node_modules/next/dist/compiled/ws');
+    const file = path.join(target, 'package.json');
+    const outside = path.join(root, 'retained');
+    fs.writeFileSync(outside, 'not JSON: must never be read as a manifest');
+    fs.rmSync(file);
+    if (kind === 'directory') fs.mkdirSync(file);
+    else fs.symlinkSync(outside, file);
+    assert.throws(() => patchNextVendors(root), /manifest must be a regular file/);
+    for (const name of Object.keys(versions)) {
+      assert.equal(fs.readFileSync(path.join(root, `node_modules/next/dist/compiled/${name}/index.js`), 'utf8'), `original-${name}`);
+      if (name !== 'ws') assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, `node_modules/next/dist/compiled/${name}/package.json`))), {name});
+    }
+    assert.equal(fs.lstatSync(file).isSymbolicLink(), kind === 'symlink');
+    assert.equal(fs.readFileSync(outside, 'utf8'), 'not JSON: must never be read as a manifest');
+  }
+});
+
+test('declared main and export paths cannot escape or redirect reviewed entries', async () => {
+  const {patchNextVendors} = await patcher();
+  for (const change of ['main-parent', 'main-parent-directory', 'main-absolute', 'main-empty', 'main-number', 'main-redirect',
+    'export-parent', 'export-absolute', 'export-number', 'export-redirect', 'export-missing']) {
+    const root = fixture();
+    const file = path.join(root, 'node_modules/next-patched-ws/package.json');
+    const data = JSON.parse(fs.readFileSync(file));
+    if (change.startsWith('main-')) data.main = {
+      'main-parent': '../retained.js', 'main-absolute': '/outside.js', 'main-empty': '',
+      'main-number': 42, 'main-redirect': 'lib/websocket.js', 'main-parent-directory': '..',
+    }[change];
+    else if (change === 'export-missing') delete data.exports;
+    else if (change === 'export-redirect') data.exports['.'].require = './lib/websocket.js';
+    else if (change === 'export-number') data.exports['./unused'] = 42;
+    else data.exports['./unused'] = {import: change === 'export-parent' ? '../outside.js' : '/outside.js'};
+    writeJson(file, data);
+    assert.throws(() => patchNextVendors(root), /entry|export/);
+    assertTargetsUntouched(root);
+  }
+});
+
+test('all seven packages require nonempty regular entry files before any replacement', async () => {
+  const {patchNextVendors} = await patcher();
+  for (const [name, files] of Object.entries(entryFiles)) {
+    for (const entry of files) {
+      for (const change of ['missing', 'empty', 'directory']) {
+        const root = fixture();
+        const file = path.join(root, `node_modules/next-patched-${name}`, entry);
+        fs.rmSync(file);
+        if (change === 'empty') fs.writeFileSync(file, '  \n');
+        if (change === 'directory') fs.mkdirSync(file);
+        assert.throws(() => patchNextVendors(root), /ENOENT|entry/);
+        assertTargetsUntouched(root);
+      }
+    }
   }
 });
 
@@ -149,6 +281,11 @@ test('server cleanup handles already-exited, graceful and forced exits', async (
 });
 
 function applicationLoad(overrides = {}) {
+  function WebSocket() {}
+  WebSocket.WebSocket = WebSocket;
+  WebSocket.Server = WebSocket.WebSocketServer = function WebSocketServer() {};
+  WebSocket.Server.prototype.address = () => null;
+  WebSocket.OPEN = 1;
   const entries = {
     './package.json': {dependencies: Object.fromEntries(Object.entries(versions).map(([name, version]) => [`next-patched-${name}`, `npm:${name}@${version}`]))},
     ...Object.fromEntries(Object.entries(versions).map(([name, version]) => [`next/dist/compiled/${name}/package.json`, {version}])),
@@ -157,6 +294,10 @@ function applicationLoad(overrides = {}) {
     'next/dist/compiled/send': () => {},
     'next/dist/compiled/debug': namespace => Object.assign(() => {}, {namespace}),
     'next/dist/compiled/fresh': () => true,
+    'next/dist/compiled/nanoid': {nanoid: () => 'a'.repeat(21), customAlphabet: (alphabet, size) => () => size === 0 ? '' : 'abc'.repeat(4)},
+    'next/dist/compiled/nanoid/index.cjs': {nanoid: () => 'a'.repeat(21)},
+    'next/dist/compiled/nanoid/non-secure': {nanoid: () => '', customAlphabet: () => () => ''},
+    'next/dist/compiled/ws': WebSocket,
     sharp: () => ({png: () => ({toBuffer: async () => Buffer.from('png')})}),
     ...overrides,
   };
@@ -171,6 +312,8 @@ test('runtime validation exercises versions, APIs, native image operation and in
   await assert.rejects(smoke.verifyRuntime(applicationLoad(), () => true));
   await assert.rejects(smoke.verifyRuntime(applicationLoad({'next/dist/compiled/send/package.json': {version: '0.0.0'}}), () => false));
   await assert.rejects(smoke.verifyRuntime(applicationLoad({'next/dist/compiled/picomatch': () => () => false}), () => false));
+  await assert.rejects(smoke.verifyRuntime(applicationLoad({'next/dist/compiled/nanoid': {nanoid: () => 'invalid'}}), () => false));
+  await assert.rejects(smoke.verifyRuntime(applicationLoad({'next/dist/compiled/ws': {}}), () => false));
   await assert.rejects(smoke.verifyRuntime(applicationLoad({sharp: () => ({png: () => ({toBuffer: async () => Buffer.alloc(0)})})}), () => false));
 });
 

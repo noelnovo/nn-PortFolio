@@ -7,9 +7,31 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+VENDORS = ['picomatch', 'semver', 'send', 'debug', 'fresh', 'nanoid', 'ws']
+ENTRY_FILES = {
+    'picomatch': ['index.js'], 'semver': ['index.js'], 'send': ['index.js'],
+    'debug': ['src/index.js', 'src/node.js', 'src/common.js'], 'fresh': ['index.js'],
+    'nanoid': ['index.cjs', 'non-secure/index.cjs', 'url-alphabet/index.cjs'],
+    'ws': ['index.js', 'lib/websocket.js', 'lib/websocket-server.js'],
+}
 
 
 class RuntimeDependencySecurityTests(unittest.TestCase):
+    def test_new_vendor_aliases_are_exact_runtime_packages_with_locked_integrity(self):
+        package = json.loads((ROOT / 'package.json').read_text())
+        lock = json.loads((ROOT / 'package-lock.json').read_text())
+        for name, version in [('nanoid', '3.3.18'), ('ws', '8.21.0')]:
+            alias = 'next-patched-' + name
+            spec = f'npm:{name}@{version}'
+            self.assertEqual(package['dependencies'][alias], spec)
+            self.assertEqual(lock['packages']['']['dependencies'][alias], spec)
+            installed = lock['packages']['node_modules/' + alias]
+            self.assertEqual((installed['name'], installed['version']), (name, version))
+            self.assertTrue(installed['integrity'].startswith('sha512-'))
+            self.assertFalse(installed.get('dev', False))
+            self.assertFalse(installed.get('dependencies', {}))
+            self.assertFalse(installed.get('optionalDependencies', {}))
+
     def test_patched_next_and_matching_toolchain_are_locked(self):
         package = json.loads((ROOT / 'package.json').read_text())
         lock = json.loads((ROOT / 'package-lock.json').read_text())
@@ -53,13 +75,25 @@ class VendorReplacementTests(unittest.TestCase):
         next_root = root / 'node_modules/next'
         next_root.mkdir(parents=True)
         (next_root / 'package.json').write_text('{"name":"next","version":"16.4.6"}')
-        for name in ['picomatch', 'semver', 'send', 'debug', 'fresh']:
+        for name in VENDORS:
             alias = 'next-patched-' + name
             source = root / 'node_modules' / alias
             source.mkdir()
             version = package['dependencies'][alias].split('@')[-1]
-            (source / 'package.json').write_text(json.dumps({'name': name, 'version': version}))
+            metadata = {'name': name, 'version': version}
+            if name not in ['send', 'fresh']:
+                metadata['main'] = ENTRY_FILES[name][0]
+            if name == 'nanoid':
+                metadata['exports'] = {'.': {'require': {'default': './index.cjs'}},
+                                       './non-secure': {'require': {'default': './non-secure/index.cjs'}}}
+            if name == 'ws':
+                metadata['exports'] = {'.': {'require': './index.js'}}
+            (source / 'package.json').write_text(json.dumps(metadata))
             (source / 'index.js').write_text('patched-' + name)
+            for entry in ENTRY_FILES[name]:
+                file = source / entry
+                file.parent.mkdir(parents=True, exist_ok=True)
+                file.write_text('patched-' + name)
             target = next_root / 'dist/compiled' / name
             target.mkdir(parents=True)
             (target / 'package.json').write_text(json.dumps({'name': name}))
@@ -74,7 +108,7 @@ class VendorReplacementTests(unittest.TestCase):
             root = Path(directory)
             self.fixture(root)
             self.assertEqual(self.run_patch(root).returncode, 0)
-            for name in ['picomatch', 'semver', 'send', 'debug', 'fresh']:
+            for name in VENDORS:
                 target = root / 'node_modules/next/dist/compiled' / name
                 self.assertEqual((target / 'index.js').read_text(), 'patched-' + name)
                 self.assertIn('version', json.loads((target / 'package.json').read_text()))
@@ -85,7 +119,7 @@ class VendorReplacementTests(unittest.TestCase):
             self.fixture(root)
             (root / 'node_modules/next-patched-semver/package.json').write_text('{"name":"semver","version":"0.0.0"}')
             self.assertNotEqual(self.run_patch(root).returncode, 0)
-            for name in ['picomatch', 'semver', 'send', 'debug', 'fresh']:
+            for name in VENDORS:
                 self.assertEqual((root / 'node_modules/next/dist/compiled' / name / 'index.js').read_text(), 'old-' + name)
 
     def test_symlink_destination_cannot_delete_or_replace_outside_data(self):

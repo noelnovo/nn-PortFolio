@@ -321,6 +321,7 @@ for (const mode of ['success', 'missing-marker', 'request-error']) {
   test(`main validates homepage and always cleans up: ${mode}`, async () => {
     let cleaned = false;
     const logged = [];
+    const errors = [];
     const run = smoke.main({load: applicationLoad(), exists: () => false,
       start: (executable, args, options) => {
         assert.equal(executable, process.execPath);
@@ -332,9 +333,15 @@ for (const mode of ['success', 'missing-marker', 'request-error']) {
         if (mode === 'request-error') throw new Error('probe failed');
         return mode === 'success' ? 'HL7 ASTM POCT1-A' : 'missing markers';
       },
-      shutdown: async () => { cleaned = true; }, log: value => logged.push(JSON.parse(value))});
+      shutdown: async () => { cleaned = true; }, log: value => logged.push(JSON.parse(value)),
+      errorLog: value => errors.push(JSON.parse(value))});
     if (mode === 'success') { await run; assert.equal(logged[0].homepageStatus, 200); }
-    else { await assert.rejects(run); assert.equal(logged.length, 0); }
+    else {
+      await assert.rejects(run);
+      assert.equal(logged.length, 0);
+      assert.deepEqual(errors, [{standaloneRuntimeSmokePassed: false, stage: 'homepage',
+        errorCategory: mode === 'missing-marker' ? 'ERR_ASSERTION' : 'other'}]);
+    }
     assert.equal(cleaned, true);
   });
 }
@@ -343,5 +350,62 @@ test('runtime CLI fails closed without a production installation', () => {
   const root = fixture();
   const result = spawnSync(process.execPath, [path.join(__dirname, 'runtime-smoke.cjs')], {cwd: root, encoding: 'utf8'});
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /runtime smoke failed/);
+  assert.deepEqual(JSON.parse(result.stderr), {standaloneRuntimeSmokePassed: false,
+    stage: 'package-manifests', errorCategory: 'ERR_ASSERTION'});
+});
+
+test('failure diagnostics use fixed stages/categories, disclose no error payload and preserve cleanup/rejection', async () => {
+  const stages = {
+    'package-manifests': './package.json',
+    'prior-vendor-apis': 'next/dist/compiled/picomatch',
+    'nanoid-main': 'next/dist/compiled/nanoid',
+    'nanoid-index': 'next/dist/compiled/nanoid/index.cjs',
+    'nanoid-api': 'nanoid-call',
+    'nanoid-nonsecure': 'next/dist/compiled/nanoid/non-secure',
+    ws: 'next/dist/compiled/ws', sharp: 'sharp',
+    'server-start': 'start', homepage: 'read-page',
+  };
+  const sentinel = 'SYNTHETIC_ERROR_PAYLOAD_MUST_NOT_BE_LOGGED';
+  for (const [stage, target] of Object.entries(stages)) {
+    for (const code of ['ERR_ASSERTION', 'MODULE_NOT_FOUND', 'ERR_PACKAGE_PATH_NOT_EXPORTED', sentinel,
+      undefined, {toJSON: () => { throw new Error('Untrusted code must not be serialized'); }}]) {
+      const failure = Object.assign(new Error(sentinel), {stack: sentinel, cause: {message: sentinel}, code});
+      const messages = [];
+      let cleaned = false;
+      const load = applicationLoad(target === 'nanoid-call'
+        ? {'next/dist/compiled/nanoid': {nanoid: () => { throw failure; }, customAlphabet: () => {}}} : {});
+      const run = smoke.main({load: name => { if (name === target) throw failure; return load(name); }, exists: () => false,
+        start: () => { if (target === 'start') throw failure; return child(); },
+        readPage: async () => { throw failure; }, shutdown: async () => { cleaned = true; },
+        log: () => assert.fail('Failed smoke cannot report success'), errorLog: value => messages.push(value)});
+      await assert.rejects(run, error => error === failure);
+      assert.equal(cleaned, stage === 'homepage');
+      assert.equal(messages.length, 1);
+      assert.equal(messages[0].includes(sentinel), false);
+      assert.deepEqual(JSON.parse(messages[0]), {standaloneRuntimeSmokePassed: false, stage,
+        errorCategory: ['ERR_ASSERTION', 'MODULE_NOT_FOUND', 'ERR_PACKAGE_PATH_NOT_EXPORTED'].includes(code) ? code : 'other'});
+    }
+  }
+});
+
+test('CLI emits only one sanitized JSON diagnostic and exits nonzero for untrusted error data', () => {
+  const root = fixture();
+  const sentinel = 'SYNTHETIC_CLI_ERROR_PAYLOAD_MUST_NOT_BE_LOGGED';
+  const preload = path.join(root, 'preload.cjs');
+  fs.writeFileSync(preload, `const Module = require('node:module');
+    const original = Module._load;
+    Module._load = function(request, ...args) {
+      if (request === './package.json') {
+        const error = new Error('${sentinel}');
+        error.stack = '${sentinel}'; error.cause = '${sentinel}'; error.code = '${sentinel}'; throw error;
+      }
+      return original.call(this, request, ...args);
+    };`);
+  const result = spawnSync(process.execPath, ['--require', preload, path.join(__dirname, 'runtime-smoke.cjs')], {cwd: root, encoding: 'utf8'});
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, '');
+  assert.equal(result.stderr.includes(sentinel), false);
+  assert.equal(result.stderr.trim().split('\n').length, 1);
+  assert.deepEqual(JSON.parse(result.stderr), {standaloneRuntimeSmokePassed: false,
+    stage: 'package-manifests', errorCategory: 'other'});
 });

@@ -6,7 +6,7 @@ interface SVGRProps {
 }
 
 const CustomCarIcon = React.memo(
-  React.forwardRef<SVGSVGElement, SVGRProps>(({title, titleId, ...props}, ref) => {
+  React.forwardRef<SVGSVGElement, SVGRProps>(({title, titleId, ...props}: SVGRProps, ref) => {
     return (
       <svg aria-labelledby={titleId} fill="currentColor" height="1em" ref={ref} viewBox="0 0 24 24" width="1em" {...props}>
         {title && <title id={titleId}>{title}</title>}

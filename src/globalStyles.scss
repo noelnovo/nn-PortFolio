@@ -32,6 +32,12 @@ html {
   height: 100vh;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   position: relative;
   width: 100%;

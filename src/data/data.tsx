@@ -69,7 +69,7 @@ export const heroData: Hero = {
           target="_blank">
           this one
         </a>{' '}
-        to explore new technologies, with a particular interest in DevOps, automation, and the journey from code to production.
+        to explore new technologies, with a particular interest in DevOps, automation, cybersecurity, and the journey from code to production.
       </p>
     </>
   ),
@@ -95,7 +95,7 @@ export const heroData: Hero = {
  */
 export const aboutData: About = {
   profileImageSrc: profilepic,
-  description: `At ERNI Consulting, I develop a configurable platform that connects laboratory and hospital instruments across the pharmaceutical and healthcare sectors, collecting and processing their data. I build C# device drivers with XSLT and HL7, ASTM, and POCT1-A standards, and create automated tests to verify integrations.\n\nI also maintain Windows and Linux installers and automate builds, tests, and deployments with Earthly, GitLab CI/CD, and Docker registries.`,
+  description: `At ERNI Consulting, I develop a configurable platform that connects laboratory and hospital instruments across the pharmaceutical and healthcare sectors, collecting and processing their data through standards such as HL7, ASTM, and POCT1-A.\n\nBeyond software development, my responsibilities span the platform's delivery and operation, including high-availability deployments, quality assurance through automated testing, security controls, and regulatory compliance.`,
   aboutItems: [
     {label: 'Location', text: 'Barcelona, Spain', Icon: MapPinIcon},
     {label: 'Age', text: '22', Icon: CalendarIcon},
